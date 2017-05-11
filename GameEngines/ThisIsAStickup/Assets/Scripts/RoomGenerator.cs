@@ -6,24 +6,22 @@ public class RoomGenerator : MonoBehaviour
 {
 
 
+
     public static float radius = 100;
-    public int numObjects = 100;
+    public int numObjects = 25;
 
     public float xThreshold;
     public float yThreshold;
-
-    
 
     public static List<Vector2> randomPoints = new List<Vector2>();
     public static List<float> xRange = new List<float>();
     public static List<float> zRange = new List<float>();
 
-
     public GameObject roomTemplate;
-    public List<GameObject> allRooms = new List<GameObject>();
+    public List<GameObject> allRooms;
 
     public List<GameObject> mainRooms;
-
+    public List<GameObject> roomsToDelete;
 
     public static Vector2 GetRandomPoint()
     {
@@ -46,7 +44,8 @@ public class RoomGenerator : MonoBehaviour
     }
 
     void Awake()
-    {      
+    {
+        allRooms = new List<GameObject>(new GameObject[numObjects]);
         CreateRandomPoints(numObjects);
         float xSum = 0;
         float zSum = 0;
@@ -62,23 +61,31 @@ public class RoomGenerator : MonoBehaviour
 
         }
 
-        float xMean = (xSum / numObjects) * 1.25f ;
-        float zMean = (zSum / numObjects) * 1.25f;
+        float xMean = (xSum / numObjects) * 0.75f;
+        float zMean = (zSum / numObjects) * 0.75f;
 
-        for(int i = 0; i < numObjects; i++)
+        for (int i = 0; i < numObjects; i++)
         {
-            if (allRooms[i].transform.localScale.x >= xMean || allRooms[i].transform.localScale.z >= zMean)
+            if (allRooms[i].transform.localScale.x >= xMean && allRooms[i].transform.localScale.z >= zMean)
             {
                 mainRooms.Add(allRooms[i]);
             }
+            else
+            {
+                roomsToDelete.Add(allRooms[i]);
+            }
         }
 
-        for(int i = 0; i < mainRooms.Count; i++)
+        for (int i = 0; i < mainRooms.Count; i++)
         {
             mainRooms[i].GetComponentInChildren<MeshRenderer>().material.color = Color.red;
             mainRooms[i].transform.position += new Vector3(0, 1f, 0);
         }
 
+        for (int i = 0; i < roomsToDelete.Count; i++)
+        {
+            Destroy(roomsToDelete[i]);
+        }
     }
 
     // Use this for initialization
@@ -90,20 +97,8 @@ public class RoomGenerator : MonoBehaviour
 
     void Update()
     {
-        for (int i = 0; i < numObjects; i++)
-        {
-            Rigidbody temp = allRooms[i].GetComponentInChildren<Rigidbody>();
-            temp.velocity = Vector3.zero;
-        
-            //if (temp.velocity.sqrMagnitude >=100)
-            //{
-            //    temp.AddForce(-temp.velocity * 0.999f);
-            //}
-            //else
-            //{
 
-            //}
-        }
+
     }
 
 
