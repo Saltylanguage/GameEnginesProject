@@ -23,6 +23,9 @@ public class RoomGenerator : MonoBehaviour
     public List<GameObject> mainRooms;
     public List<GameObject> roomsToDelete;
 
+    bool separateFlag = false;
+
+
     public static Vector2 GetRandomPoint()
     {
         Vector2 ret = new Vector2();
@@ -97,9 +100,56 @@ public class RoomGenerator : MonoBehaviour
 
     void Update()
     {
+        BoxCollider temp;
 
 
+        for (int i = 0; i < mainRooms.Count; i++)
+        {
+            temp = mainRooms[i].GetComponentInChildren<BoxCollider>();
+            for (int j = 0; j < mainRooms.Count; j++)
+            {
+                if (i == j)
+                {
+                    continue;
+                }
+                if (temp.bounds.Intersects(mainRooms[j].GetComponentInChildren<BoxCollider>().bounds))
+                {
+                    if (mainRooms[i].GetComponentInChildren<Rigidbody>().velocity == Vector3.zero)
+                    {
+                        Debug.Log("Intersecting when Velocity is zero.");
+                        separateFlag = true;
+                    }
+
+                    if (separateFlag)
+                    {
+                        Debug.Log("X: " + mainRooms[i].transform.position.x + "Y: " + mainRooms[i].transform.position.y + "Z: " + mainRooms[i].transform.position.z);
+
+                        float randomXOffset = Random.Range(1, 5);
+
+                        float randomZOffset = Random.Range(1, 5);
+
+                        if(mainRooms[i].transform.position.x <= mainRooms[j].transform.position.x)
+                        {
+                            randomXOffset *= -1;                            
+                        }
+                        if (mainRooms[i].transform.position.z <= mainRooms[j].transform.position.z)
+                        {
+                            randomZOffset *= -1;
+                        }
+
+                        mainRooms[i].transform.position += new Vector3(randomXOffset, 0, randomZOffset);
+                    }
+
+                    separateFlag = false;
+                }
+            }
+        }
     }
 
 
 }
+
+
+
+
+
