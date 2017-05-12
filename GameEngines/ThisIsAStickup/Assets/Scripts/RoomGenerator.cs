@@ -87,7 +87,7 @@ public class RoomGenerator : MonoBehaviour
 
         for (int i = 0; i < roomsToDelete.Count; i++)
         {
-            Destroy(roomsToDelete[i]);
+            //Destroy(roomsToDelete[i]);
         }
     }
 
@@ -103,18 +103,18 @@ public class RoomGenerator : MonoBehaviour
         BoxCollider temp;
 
 
-        for (int i = 0; i < mainRooms.Count; i++)
+        for (int i = 0; i < allRooms.Count; i++)
         {
-            temp = mainRooms[i].GetComponentInChildren<BoxCollider>();
-            for (int j = 0; j < mainRooms.Count; j++)
+            temp = allRooms[i].GetComponentInChildren<BoxCollider>();
+            for (int j = 0; j < allRooms.Count; j++)
             {
                 if (i == j)
                 {
                     continue;
                 }
-                if (temp.bounds.Intersects(mainRooms[j].GetComponentInChildren<BoxCollider>().bounds))
+                if (temp.bounds.Intersects(allRooms[j].GetComponentInChildren<BoxCollider>().bounds))
                 {
-                    if (mainRooms[i].GetComponentInChildren<Rigidbody>().velocity == Vector3.zero)
+                    if (allRooms[i].GetComponentInChildren<Rigidbody>().velocity == Vector3.zero)
                     {
                         Debug.Log("Intersecting when Velocity is zero.");
                         separateFlag = true;
@@ -122,22 +122,22 @@ public class RoomGenerator : MonoBehaviour
 
                     if (separateFlag)
                     {
-                        Debug.Log("X: " + mainRooms[i].transform.position.x + "Y: " + mainRooms[i].transform.position.y + "Z: " + mainRooms[i].transform.position.z);
+                        Debug.Log("X: " + allRooms[i].transform.position.x + "Y: " + allRooms[i].transform.position.y + "Z: " + allRooms[i].transform.position.z);
 
                         float randomXOffset = Random.Range(1, 5);
 
                         float randomZOffset = Random.Range(1, 5);
 
-                        if(mainRooms[i].transform.position.x <= mainRooms[j].transform.position.x)
+                        if(allRooms[i].transform.position.x <= allRooms[j].transform.position.x)
                         {
                             randomXOffset *= -1;                            
                         }
-                        if (mainRooms[i].transform.position.z <= mainRooms[j].transform.position.z)
+                        if (allRooms[i].transform.position.z <= allRooms[j].transform.position.z)
                         {
                             randomZOffset *= -1;
                         }
 
-                        mainRooms[i].transform.position += new Vector3(randomXOffset, 0, randomZOffset);
+                        allRooms[i].transform.position += new Vector3(randomXOffset, 0, randomZOffset);
                     }
 
                     separateFlag = false;
