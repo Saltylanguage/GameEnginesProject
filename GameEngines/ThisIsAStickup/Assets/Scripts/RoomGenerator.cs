@@ -21,6 +21,9 @@ public class RoomGenerator : MonoBehaviour
     public List<GameObject> roomsToDelete;
 
     public bool separateFlag = false;
+    public bool isDone = false;
+
+    ArchitectureGenerator archGen; 
 
 
     public static Vector2 GetRandomPoint()
@@ -45,6 +48,8 @@ public class RoomGenerator : MonoBehaviour
 
     void Awake()
     {
+
+        archGen = GetComponent<ArchitectureGenerator>();
         allRooms = new List<GameObject>(new GameObject[numObjects]);
         CreateRandomPoints(numObjects);
         float xSum = 0;
@@ -52,6 +57,7 @@ public class RoomGenerator : MonoBehaviour
         for (int i = 0; i < numObjects; i++)
         {
             allRooms[i] = Instantiate(roomTemplate);
+            
 
             allRooms[i].transform.localScale = new Vector3(xRange[i], 10, zRange[i]);
             allRooms[i].transform.position = new Vector3(randomPoints[i].x, 10, randomPoints[i].y);
@@ -94,44 +100,71 @@ public class RoomGenerator : MonoBehaviour
     {
         BoxCollider temp;
 
+        bool done = true;
         for (int i = 0; i < allRooms.Count; i++)
         {
             temp = allRooms[i].GetComponentInChildren<BoxCollider>();
-            for (int j = 0; j < allRooms.Count; j++)
+            if(temp)
             {
-                if (i == j)
+                for (int j = 0; j < allRooms.Count; j++)
                 {
-                    continue;
-                }
-                if (temp.bounds.Intersects(allRooms[j].GetComponentInChildren<BoxCollider>().bounds))
-                {
-                    if (allRooms[i].GetComponentInChildren<Rigidbody>().velocity == Vector3.zero)
-                    {                       
-                        separateFlag = true;
+                    if (i == j)
+                    {
+                        continue;
                     }
-
-                    if (separateFlag)
-                    {                     
-                        float randomXOffset = Random.Range(1, 5);
-
-                        float randomZOffset = Random.Range(1, 5);
-
-                        if (allRooms[i].transform.position.x <= allRooms[j].transform.position.x)
+                    if (temp.bounds.Intersects(allRooms[j].GetComponentInChildren<BoxCollider>().bounds))
+                    {
+                        if (allRooms[i].GetComponentInChildren<Rigidbody>().velocity == Vector3.zero)
                         {
-                            randomXOffset *= -1;
-                        }
-                        if (allRooms[i].transform.position.z <= allRooms[j].transform.position.z)
-                        {
-                            randomZOffset *= -1;
+                            separateFlag = true;
                         }
 
-                        allRooms[i].transform.position += new Vector3(randomXOffset, 0, randomZOffset);
-                    }
+                        if (separateFlag)
+                        {
+                            float randomXOffset = Random.Range(1, 5);
 
-                    separateFlag = false;
+                            float randomZOffset = Random.Range(1, 5);
+
+                            if (allRooms[i].transform.position.x <= allRooms[j].transform.position.x)
+                            {
+                                randomXOffset *= -1;
+                            }
+                            if (allRooms[i].transform.position.z <= allRooms[j].transform.position.z)
+                            {
+                                randomZOffset *= -1;
+                            }
+
+                            allRooms[i].transform.position += new Vector3(randomXOffset, 0, randomZOffset);
+                            done = false;
+                        }
+
+                        separateFlag = false;
+                    }
                 }
             }
         }
+           
+
+        //isDone = true;
+        //for(int i = 0; i < allRooms.Count; i++)
+        //{
+        //    for(int j = 0; j < allRooms.Count; j++)
+        //    {
+        //        if (allRooms[i].GetComponent<BoxCollider>().bounds.Intersects(allRooms[j].GetComponentInChildren<BoxCollider>().bounds))
+        //        {
+        //            isDone = false;
+        //            break;
+        //        }
+        //    }
+        //}
+
+        if(done && !archGen.isGenerated)
+        {            
+            archGen.GenerateArchitecture();
+            //Destroy(this.gameObject);
+        }
+
+
     }
 
 

@@ -109,7 +109,6 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         SortYPoints();
         MergePointValues();
         CreateTriangles();
-        float x = 0;
     }
 
     // Use this for initialization
@@ -120,24 +119,24 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
 
     // Update is called once per frame
     void Update()
-    {        
+    {
 
-        //if (counter < 1)
-        //{
-        //    if (!roomGenerator.separateFlag)
-        //    {
-              //  counter++;
+        if (counter < 1)
+        {
+            if (!roomGenerator.separateFlag)
+            {
+                counter++;
                 RunTriangulator();
-        //    }
-        //}
-        //else
-        //{
+            }
+        }
+        else
+        {
             for (int i = 0; i < xPoints.Count - 2; i++)
             {
                 Debug.DrawLine(triangles[i].pointA, triangles[i].pointB, Color.green);
                 Debug.DrawLine(triangles[i].pointB, triangles[i].pointC, Color.green);
-                Debug.DrawLine(triangles[i].pointA, triangles[i].pointC, Color.green);
-            //}
+                Debug.DrawLine(triangles[i].pointC, triangles[i].pointA, Color.green);
+                }
+            }
         }
     }
-}
