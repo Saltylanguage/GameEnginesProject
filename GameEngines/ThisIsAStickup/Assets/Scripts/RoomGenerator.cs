@@ -161,7 +161,7 @@ public class RoomGenerator : MonoBehaviour
         if(done && !archGen.isGenerated)
         {            
             archGen.GenerateArchitecture();
-            //Destroy(this.gameObject);
+            Destroy(this.gameObject);
         }
 
 

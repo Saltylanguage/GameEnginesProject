@@ -6,21 +6,6 @@ public class ArchitectureGenerator : MonoBehaviour {
 
     public RoomGenerator mRoomGenerator;
 
-
-    //List<Transform> ceilingTransforms = new List<Transform>();
-    //List<Transform> floorTransforms = new List<Transform>();
-    //List<Transform> northWallTransforms = new List<Transform>();
-    //List<Transform> eastWallTransforms = new List<Transform>();
-    //List<Transform> southWallTransforms = new List<Transform>();
-    //List<Transform> westWallTransforms = new List<Transform>();
-
-    //List<GameObject> ceilings;
-    //List<GameObject> floors;
-    //List<GameObject> northWalls;
-    //List<GameObject> eastWalls;
-    //List<GameObject> southWalls;
-    //List<GameObject> westWalls;
-
     public GameObject wallTemplate;
     public GameObject CeilingAndFloorTemplate;
 
@@ -30,42 +15,6 @@ public class ArchitectureGenerator : MonoBehaviour {
     // Use this for initialization
     void Start ()
     {
-        //ceilings = new List<GameObject>();
-        //floors = new List<GameObject>();
-
-        //westWalls = new List<GameObject>();
-        //eastWalls = new List<GameObject>();
-        //northWalls = new List<GameObject>();
-        //southWalls = new List<GameObject>();    
-
-        //for (int i = 0; i < mRoomGenerator.allRooms.Count; i++)
-        //{
-        //    ceilings[i].transform.position = ceilingTransforms[i].position;
-        //    ceilings[i].transform.localScale = ceilingTransforms[i].localScale;
-        //    ceilings[i] = Instantiate(CeilingAndFloorTemplate);
-
-
-        //    floors[i] = Instantiate(CeilingAndFloorTemplate);
-        //    floors[i].transform.position = floorTransforms[i].position;
-        //    floors[i].transform.localScale = floorTransforms[i].localScale;            
-
-        //    westWalls[i].transform.position =   westWallTransforms[i].position;
-        //    westWalls[i].transform.localScale = westWallTransforms[i].localScale;
-        //    westWalls[i] = Instantiate(wallTemplate);
-
-        //    eastWalls[i].transform.position =   eastWallTransforms[i].position;
-        //    eastWalls[i].transform.localScale = eastWallTransforms[i].localScale;
-        //    eastWalls[i] = Instantiate(wallTemplate);
-
-        //    northWalls[i].transform.position =   northWallTransforms[i].position;
-        //    northWalls[i].transform.localScale = northWallTransforms[i].localScale;
-        //    northWalls[i] = Instantiate(wallTemplate);
-
-        //    southWalls[i].transform.position =   southWallTransforms[i].position;
-        //    southWalls[i].transform.localScale = southWallTransforms[i].localScale;
-        //    southWalls[i] = Instantiate(wallTemplate);
-        //}
-
 	}
 	
     public void GenerateArchitecture()
@@ -120,7 +69,7 @@ public class ArchitectureGenerator : MonoBehaviour {
                                             mRoomGenerator.allRooms[i].gameObject.transform.position.z - (mRoomGenerator.allRooms[i].transform.localScale.z / 2.0f));
             
 
-            Destroy(mRoomGenerator.allRooms[i]);
+            //Destroy(mRoomGenerator.allRooms[i]);
             isGenerated = true;
 
             }
