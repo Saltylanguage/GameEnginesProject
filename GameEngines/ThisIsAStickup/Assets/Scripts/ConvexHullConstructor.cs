@@ -4,14 +4,8 @@ using System.Collections.Generic;
 
 public class ConvexHullConstructor : MonoBehaviour
 {
-
-    // public RoomGenerator roomGen;
-    //List<Vector3> points = new List<Vector3>();
-
+    List<Vector3> roomPositions = new List<Vector3>();
     List<Vector3> convexHullPoints = new List<Vector3>();
-
-    public GameObject cube;
-    //List<GameObject> objectList = new List<GameObject>();
 
     Vector3 pointA;
     Vector3 pointB;
@@ -25,153 +19,91 @@ public class ConvexHullConstructor : MonoBehaviour
 
     float leftRightResult;
 
-    int pointAIndex = 0;  // index for first point in separating line
-    int pointBIndex = 0;  // index for second point in separating line
+    int i = 0;
+    int j = 0;
 
-    int BIndexTemp = 0;  // temporary value to reset index when a convex hull candidate is found.
+    int tempIndex = 0;  // temporary value to reset index when a convex hull candidate is found.
+
+    public bool isGenerated = false;
+
+    bool firstPass = true;
+
+    bool stopFlag = false;
+
+
+    // Use this for initialization                                       
+    void Start()
+    {
+
+        //testPoints.Add(new Vector3(69, 7, 0));      // fixed
+        //testPoints.Add(new Vector3(0, 92, 0));      // ok
+        //testPoints.Add(new Vector3(12, 60, 0));     // ok
+        //testPoints.Add(new Vector3(35, 28, 0));     // ok
+        //testPoints.Add(new Vector3(42, 6, 0));      // fixed
+        //testPoints.Add(new Vector3(44, 18, 0));     // ok
+        //testPoints.Add(new Vector3(150, 45, 0));     // ok
+        //testPoints.Add(new Vector3(52, 14, 0));     // ok
+        //testPoints.Add(new Vector3(0, 0, 0));
+        //testPoints.Add(new Vector3(58, 19, 0));     // fixed
+        //testPoints.Add(new Vector3(66, 9, 0));     // ok
+        //testPoints.Add(new Vector3(78, 78, 0));
+        //testPoints.Add(new Vector3(80, 124, 0));     // ok
+        //testPoints.Add(new Vector3(25, 10, 0));     // ok
+        //testPoints.Add(new Vector3(18, 22, 0));
+        //testPoints.Add(new Vector3(8, 10, 0));
+        //testPoints.Add(new Vector3(44, 4, 0));
+        //testPoints.Add(new Vector3(39, 39, 0));
+
+        float y = 0.0f;
+        for (int index = 0; index < 25; index++)
+        {
+            float randx = Random.Range(0, 100);
+            float randz = Random.Range(0, 100);
+
+            testPoints.Add(new Vector3(randx, y, randz));
+        }
+
+        testPoints.Sort((a, b) => a.x.CompareTo(b.x));
+
+
+        FindEndPoint(testPoints);
+        GenerateConvexHull(testPoints);
+
+    }
+
+    public void GeneratePoints(List<Vector3> points)
+    {
+        for (int index = 0; index < points.Count; index++)
+        {
+            roomPositions.Add(points[index]);
+        }
+    }
 
     float LeftRightCheck(Vector3 pointA, Vector3 pointB, Vector3 queryPoint)
     {
         float ret = 0;
 
-        ret = Mathf.Sign((pointB.x - pointA.x) * (queryPoint.y - pointA.y) - (pointB.y - pointA.y) * (queryPoint.x - pointA.x));
-
-        //Debug.Log("Result: " + ret);
-
-        if (ret > 0)
-        {
-            Debug.Log("Left");
-        }
-        else if (ret < 0)
-        {
-            Debug.Log("Right");
-        }
-        else if (ret == 0)
-        {
-            Debug.Log("Same");
-        }
+        ret = Mathf.Sign((pointB.x - pointA.x) * (queryPoint.z - pointA.z) - (pointB.z - pointA.z) * (queryPoint.x - pointA.x));
 
         return ret;
     }
 
 
 
-    void ConstructConvexHull()
+
+    public void DrawConvexHull()
     {
-        for (pointAIndex = 0; pointAIndex < testPoints.Count + 1; pointAIndex++)
-        {
-            
-            pointA = testPoints[pointAIndex];   // set the first point to wherever we are in the list of points 
-            //(Note: this value will be reset to point B's index when a convex hull candidate is found)
-            // In other words, the search will start from the last convex hull point we have found. 
-
-
-            // because we are looping around the list of points it is possible to arrive at the end of the list and need to keep going
-            // in fact it is necessary to arrive back at the starting point.
-            //therefore whenever the index is out of range it will need to be reset to search back at the beginning of the list.
-            if (pointAIndex + 1 >= testPoints.Count)  
-            {
-                pointB = testPoints[0];
-            }
-            else
-            {
-                pointB = testPoints[pointAIndex + 1];  // general case to setting pointB
-            }
-
-
-            // begin searching through the points to find a convex hull candidate
-            for (pointBIndex = 0; pointBIndex < testPoints.Count; pointBIndex++)
-            {
-                if ((pointAIndex != pointBIndex) && (pointAIndex + 1 != pointBIndex))
-                {
-                    // the query point is the current point we are going to test to see if it falls on the left or right
-                    // of the line separating created by pointA and pointB that separates the world.
-                    queryPoint = testPoints[pointBIndex];  
-                    Debug.Log("pointA = " + pointAIndex + " pointB = " + (pointAIndex + 1) + " queryPoint = " + pointBIndex);
-                    
-                    //begin left/right check.
-                    leftRightResult = LeftRightCheck(pointA, pointB, queryPoint);
-                    if (leftRightResult > 0) // greater than zero represents a point which left of the separation line
-                    {
-                        //any point that falls on the left is a viable candidate
-                        convexHullPointToBeAdded = testPoints[pointBIndex]; // this could be the point to add to the convex hull 
-                        pointB = testPoints[pointBIndex]; 
-                        // since we have found a candidate, we must now test which points fall to the left of the line from pointA to the candidate
-                        //if we find another point that falls to the left of this line, that point becomes our new candidate and we must update
-                        // pointB again.
-                        BIndexTemp = pointBIndex; // track where this point is in the list to start searching from this point next iteration
-                    }
-                }
-            }
-
-            // ensure that if everything is to the right, we still have a valid point for the convex hull
-            if (convexHullPointToBeAdded == new Vector3(0.0f, 0.0f, 0.0f))
-            {
-                convexHullPointToBeAdded = pointB;
-            }
-
-            //By this point we have ensured that we are correctly grabbing the next valid convex hull point.  
-            //All other candidates have been compared and disqualified
-
-            pointB = convexHullPointToBeAdded; // set pointB of the new separating line to the newest point added to the convex hull.
-            convexHullPoints.Add(convexHullPointToBeAdded); // add the point to the list of convex hull points
-            pointAIndex = BIndexTemp - 1; // set the start point for the next search
-            pointBIndex = 0; // reset the pointB start point so we are comparing against all points for left/right positioning
-
-
-            // break condition, once we have the endpoint in the list we know that the convex hull is complete as we have arrived back at
-            // the beginning
-            if (pointB == endPoint || convexHullPoints.Contains(endPoint)) 
-            {
-                break;
-            }
-
-        }
-
-        //Debug.Log("Number of Convex Hull Points: " + convexHullPoints.Count);
-    }
-
-    // Use this for initialization
-    void Start()
-    {
-
-        testPoints.Add(new Vector3(18, 22, 0));
-        testPoints.Add(new Vector3(25, 10, 0));
-        testPoints.Add(new Vector3(35, 28, 0));
-        testPoints.Add(new Vector3(42, 6, 0));
-        testPoints.Add(new Vector3(44, 18, 0));
-        testPoints.Add(new Vector3(50, 45, 0));
-        testPoints.Add(new Vector3(58, 19, 0));
-        testPoints.Add(new Vector3(66, 29, 0));
-        testPoints.Add(new Vector3(69, 7, 0));
-        testPoints.Add(new Vector3(80, 24, 0));
-        //testPoints.Add(new Vector3(0, 92, 0));
-        //testPoints.Add(new Vector3(12, 60, 0));
-        //testPoints.Add(new Vector3(180, 1, 0));
-        //testPoints.Add(new Vector3(52, 14, 0));
-        //testPoints.Add(new Vector3(8, 80, 0));
-        //testPoints.Add(new Vector3(44, 4, 0));
-        //testPoints.Add(new Vector3(39, 39, 0));
-
-
-        endPoint = testPoints[0];
-
-        Debug.Log("Convex Hull Constructor Reporting in.");
-        Debug.Log("Number of Test Points: " + testPoints.Count);
-
-        ConstructConvexHull();
-
-    }
-
-    void DrawConvexHull()
-    {
+        Color color = Color.blue;
         for (int i = 0; i < convexHullPoints.Count - 1; i++)
         {
-            Debug.DrawLine(convexHullPoints[i], convexHullPoints[i + 1], Color.green);
+            if(i >= 1)
+            {
+                color = Color.green;
+            }
+            Debug.DrawLine(convexHullPoints[i], convexHullPoints[i + 1], color);
         }
-        Debug.DrawLine(convexHullPoints[convexHullPoints.Count - 1], convexHullPoints[0], Color.green);
+        Debug.DrawLine(convexHullPoints[convexHullPoints.Count - 1], convexHullPoints[0], Color.red);
     }
-
 
     void OnDrawGizmos()
     {
@@ -181,30 +113,170 @@ public class ConvexHullConstructor : MonoBehaviour
             Gizmos.DrawSphere(testPoints[i], 2.0f);
         }
     }
-
     // Update is called once per frame
     void Update()
     {
+        if (!isGenerated)
+        {
+            GenerateConvexHull(testPoints);
+        }
         DrawConvexHull();
     }
+
+
+
+    void FindEndPoint(List<Vector3> points)
+    {
+        endPoint = points[0];
+        for (int index = 0; index < points.Count; index++)
+        {
+            if (points[index].x < endPoint.x)
+            {
+                endPoint = points[index];
+            }
+        }
+    }
+
+
+    public void GenerateConvexHull(List<Vector3> points)
+    {
+        FindEndPoint(points);
+        while (!convexHullPoints.Contains(endPoint) || stopFlag)
+        {
+          
+            if (i >= points.Count)
+            {
+                i = points.Count - 1;
+            }
+            if (i == 0)
+            {
+                pointA = endPoint;
+            }
+            else
+            {
+                pointA = points[i];
+            }
+            if (i + 1 >= points.Count)
+            {
+                pointB = points[0];
+            }
+            else
+            {
+                pointB = points[i + 1];
+            }
+
+            for (j = 0; j < points.Count; j++)
+            {
+                if ((i != j) && (i + 1 != j))
+                {
+                    queryPoint = points[j];
+
+                    leftRightResult = LeftRightCheck(pointA, pointB, queryPoint);
+                    if (leftRightResult > 0)
+                    {
+                        convexHullPointToBeAdded = points[j];
+                        pointB = points[j];
+
+                        tempIndex = j;
+                    }
+                }
+
+            }
+            i++;
+            if (convexHullPointToBeAdded == pointA || convexHullPointToBeAdded == new Vector3(0.0f, 0.0f, 0.0f))
+            {
+                convexHullPointToBeAdded = pointB;
+                tempIndex = j;
+            }
+            convexHullPoints.Add(convexHullPointToBeAdded);
+            i = tempIndex;
+
+            if (pointB == endPoint || convexHullPoints.Contains(endPoint))
+            {              
+                break;
+            }
+            firstPass = false;
+        }
+        isGenerated = true;
+    }
+
+
+    void SetStopFlagToTrue(List<Vector3> points)
+    {
+        for (int index = 0; index < points.Count; index++)
+        {
+            for (int jIndex = 0; jIndex < points.Count; jIndex++)
+            {
+                if (index != jIndex)
+                {
+                    if (points[index] == points[jIndex])
+                    {
+                        stopFlag = true;
+                    }
+                }
+
+            }
+        }
+    }
+
 }
 
 
 
 
-//void JarvisMarch()
+
+
+
+//public void ConstructConvexHull()
 //{
-//    endPoint = roomGen.allRooms[0].transform.position;
-//    currentPoint = roomGen.allRooms[1].transform.position;
-
-//    for (int i = 0; i < roomGen.allRooms.Count; i++)
+//    while (!convexHullPoints.Contains(endPoint))
 //    {
-//        points.Add(roomGen.allRooms[i].transform.position);
+//        if (i >= roomPositions.Count)
+//        {
+//            i = roomPositions.Count - 1;
+//        }
+//        pointA = roomPositions[i];
+//        if (i + 1 >= roomPositions.Count)
+//        {
+//            pointB = roomPositions[0];
+//        }
+//        else
+//        {
+//            pointB = roomPositions[i + 1];
+//        }
+
+//        for (j = 0; j < roomPositions.Count; j++)
+//        {
+//            if ((i != j) && (i + 1 != j))
+//            {
+//                queryPoint = roomPositions[j];
+
+//                leftRightResult = LeftRightCheck(pointA, pointB, queryPoint);
+//                if (leftRightResult > 0)
+//                {
+//                    convexHullPointToBeAdded = roomPositions[j];
+//                    pointB = roomPositions[j];
+
+//                    tempIndex = j;
+//                }
+//            }
+
+//        }
+//        i++;
+//        if (convexHullPointToBeAdded == pointA)
+//        {
+//            convexHullPointToBeAdded = pointB;
+//            tempIndex = j;
+//        }
+//        convexHullPoints.Add(convexHullPointToBeAdded);
+//        i = tempIndex;
+
+//        if (pointB == endPoint || convexHullPoints.Contains(endPoint))
+//        {
+//            isGenerated = true;
+//            break;
+//        }
+
 //    }
-
-
-//    while (currentPoint != endPoint)
-//    {
-
-//    }
-
+//    isGenerated = true;
+//}

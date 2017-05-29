@@ -20,10 +20,19 @@ public class RoomGenerator : MonoBehaviour
     public List<GameObject> mainRooms;
     public List<GameObject> roomsToDelete;
 
+    public List<Vector3> roomPositions;
+
+
     public bool separateFlag = false;
     public bool isDone = false;
+    public bool done = false;
 
-    ArchitectureGenerator archGen; 
+    ArchitectureGenerator archGen;    
+    ConvexHullConstructor convexGen;
+
+
+
+
 
 
     public static Vector2 GetRandomPoint()
@@ -50,6 +59,7 @@ public class RoomGenerator : MonoBehaviour
     {
 
         archGen = GetComponent<ArchitectureGenerator>();
+        convexGen = GetComponent<ConvexHullConstructor>();
         allRooms = new List<GameObject>(new GameObject[numObjects]);
         CreateRandomPoints(numObjects);
         float xSum = 0;
@@ -100,7 +110,7 @@ public class RoomGenerator : MonoBehaviour
     {
         BoxCollider temp;
 
-        bool done = true;
+        done = true;
         for (int i = 0; i < allRooms.Count; i++)
         {
             temp = allRooms[i].GetComponentInChildren<BoxCollider>();
@@ -143,28 +153,27 @@ public class RoomGenerator : MonoBehaviour
                 }
             }
         }
-           
 
-        //isDone = true;
-        //for(int i = 0; i < allRooms.Count; i++)
-        //{
-        //    for(int j = 0; j < allRooms.Count; j++)
-        //    {
-        //        if (allRooms[i].GetComponent<BoxCollider>().bounds.Intersects(allRooms[j].GetComponentInChildren<BoxCollider>().bounds))
-        //        {
-        //            isDone = false;
-        //            break;
-        //        }
-        //    }
-        //}
+        if (done && !convexGen.isGenerated)
+        {
 
-        if(done && !archGen.isGenerated)
-        {            
-            archGen.GenerateArchitecture();
-            Destroy(this.gameObject);
+            //SetRoomPositions();
+            //convexGen.GeneratePoints(roomPositions);
+            //convexGen.GenerateConvexHull(roomPositions);
+            //archGen.GenerateArchitecture();
+            //Destroy(this.gameObject);
         }
 
+        //convexGen.DrawConvexHull();
 
+    }
+
+    void SetRoomPositions()
+    {
+        for(int i = 0; i < allRooms.Count; i++)
+        {
+            roomPositions.Add(allRooms[i].transform.position);
+        }
     }
 
 
