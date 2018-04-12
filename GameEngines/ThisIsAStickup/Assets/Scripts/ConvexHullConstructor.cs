@@ -2,6 +2,26 @@
 using System.Collections;
 using System.Collections.Generic;
 
+// Initial Conditions
+// Sort the list of points
+// Find the bottom most point and add it to the stack
+// Add p2 to the stack
+
+// Algorithm
+
+//  Step 1 
+//  Grab next point(n) in the list,
+
+//  Step 2
+//  Make a line with the top 2 points from the stack, and another line with point(n) and the top stack.  If cross product is negative left turn, otherwise right turn 
+
+//  Step 3
+//  if left add to stack and move to next point
+//  if right pop and repeat step 2
+
+//Do this until the end of the list
+
+
 public class ConvexHullConstructor : MonoBehaviour
 {
     List<Vector3> roomPositions = new List<Vector3>();
@@ -35,6 +55,16 @@ public class ConvexHullConstructor : MonoBehaviour
     void Start()
     {
 
+        //testPoints.Add(new Vector3(1, 0, 8));
+        //testPoints.Add(new Vector3(-3, 0, 4));
+        //testPoints.Add(new Vector3(1, 0, 1));
+        //testPoints.Add(new Vector3(-1, 0, 8));
+        //testPoints.Add(new Vector3(-2, 0, 0));
+        //testPoints.Add(new Vector3(1, 0, 2));
+        //testPoints.Add(new Vector3(-2, 0, 6));
+        //testPoints.Add(new Vector3(0, 0, 0));
+
+
         //testPoints.Add(new Vector3(69, 7, 0));      // fixed
         //testPoints.Add(new Vector3(0, 92, 0));      // ok
         //testPoints.Add(new Vector3(12, 60, 0));     // ok
@@ -63,10 +93,11 @@ public class ConvexHullConstructor : MonoBehaviour
             testPoints.Add(new Vector3(randx, y, randz));
         }
 
-        testPoints.Sort((a, b) => a.x.CompareTo(b.x));
+        testPoints.Sort((a, b) => a.z.CompareTo(b.z));
 
-
-        FindEndPoint(testPoints);
+        SortByAngle(ref testPoints);
+        //do not do dis
+        //convexHullPoints = testPoints;
         GenerateConvexHull(testPoints);
 
     }
@@ -83,7 +114,10 @@ public class ConvexHullConstructor : MonoBehaviour
     {
         float ret = 0;
 
-        ret = Mathf.Sign((pointB.x - pointA.x) * (queryPoint.z - pointA.z) - (pointB.z - pointA.z) * (queryPoint.x - pointA.x));
+        ret = Mathf.Sign((pointB.x - pointA.x)  //ABx
+            * (queryPoint.z - pointA.z)         //QAz
+            - (pointB.z - pointA.z) *           //ABz
+              (queryPoint.x - pointA.x));       //AQx
 
         return ret;
     }
@@ -96,7 +130,7 @@ public class ConvexHullConstructor : MonoBehaviour
         Color color = Color.blue;
         for (int i = 0; i < convexHullPoints.Count - 1; i++)
         {
-            if(i >= 1)
+            if (i >= 1)
             {
                 color = Color.green;
             }
@@ -116,87 +150,137 @@ public class ConvexHullConstructor : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!isGenerated)
-        {
-            GenerateConvexHull(testPoints);
-        }
+        //if (!isGenerated)
+        //{
+        //    GenerateConvexHull(testPoints);
+        //}
         DrawConvexHull();
     }
 
 
 
-    void FindEndPoint(List<Vector3> points)
+    void FindEndPoint(List<Vector3> points) //Assuming Sorted List, and first point is leftmost
     {
         endPoint = points[0];
-        for (int index = 0; index < points.Count; index++)
-        {
-            if (points[index].x < endPoint.x)
-            {
-                endPoint = points[index];
-            }
-        }
+        //for (int index = 0; index < points.Count; index++)
+        //{
+        //    if (points[index].x < endPoint.x)
+        //    {
+        //        endPoint = points[index];
+        //    }
+        //}
     }
 
 
     public void GenerateConvexHull(List<Vector3> points)
     {
-        FindEndPoint(points);
-        while (!convexHullPoints.Contains(endPoint) || stopFlag)
+
+        // Find the bottom most point and add it to the stack
+        // Add p2 to the stack
+
+        // Algorithm
+
+        List<Vector3> convexStack = new List<Vector3>();
+        convexStack.Add(points[0]);
+        convexStack.Add(points[1]);
+
+
+        for (int i = 2; i < points.Count; ++i)
         {
-          
-            if (i >= points.Count)
-            {
-                i = points.Count - 1;
-            }
-            if (i == 0)
-            {
-                pointA = endPoint;
-            }
-            else
-            {
-                pointA = points[i];
-            }
-            if (i + 1 >= points.Count)
-            {
-                pointB = points[0];
-            }
-            else
-            {
-                pointB = points[i + 1];
-            }
+            //  Step 1 
+            //  Grab next point(n) in the list,
+            Vector3 temp = points[i];
+            Vector3 a = convexStack[convexStack.Count - 2];
+            Vector3 b = convexStack[convexStack.Count - 1];
+            
+            float result = LeftRightCheck(a, b, temp);
 
-            for (j = 0; j < points.Count; j++)
+            if(result > 0)
             {
-                if ((i != j) && (i + 1 != j))
+                convexStack.Add(temp);
+            }
+            else if (result < 0)
+            {
+                convexStack.RemoveAt(convexStack.Count - 1);
+                --i;
+            }
+            else
+            {
+                if(Vector3.SqrMagnitude(b - a) < Vector3.SqrMagnitude(temp - a))
                 {
-                    queryPoint = points[j];
-
-                    leftRightResult = LeftRightCheck(pointA, pointB, queryPoint);
-                    if (leftRightResult > 0)
-                    {
-                        convexHullPointToBeAdded = points[j];
-                        pointB = points[j];
-
-                        tempIndex = j;
-                    }
+                    convexStack.RemoveAt(convexStack.Count - 1);
+                    convexStack.Add(temp);
                 }
+            }
 
-            }
-            i++;
-            if (convexHullPointToBeAdded == pointA || convexHullPointToBeAdded == new Vector3(0.0f, 0.0f, 0.0f))
-            {
-                convexHullPointToBeAdded = pointB;
-                tempIndex = j;
-            }
-            convexHullPoints.Add(convexHullPointToBeAdded);
-            i = tempIndex;
-
-            if (pointB == endPoint || convexHullPoints.Contains(endPoint))
-            {              
-                break;
-            }
-            firstPass = false;
         }
+
+
+        //  Step 2
+        //  Make a line with the top 2 points from the stack, and another line with point(n) and the top stack.  If cross product is negative left turn, otherwise right turn 
+
+        //  Step 3
+        //  if left add to stack and move to next point
+        //  if right pop and repeat step 2
+
+
+
+
+
+
+
+        //while (!convexHullPoints.Contains(endPoint) || stopFlag)
+        //{
+        //    if (i == 0)
+        //    {
+        //        pointA = endPoint;
+        //    }
+        //    else
+        //    {
+        //        pointA = points[i];
+        //    }
+        //    if (i + 1 >= points.Count)
+        //    {
+        //        pointB = points[0];
+        //    }
+        //    else
+        //    {
+        //        pointB = points[i + 1];
+        //    }
+
+        //    for (j = 0; j < points.Count; j++)
+        //    {
+        //        if ((i != j) && (i + 1 != j))
+        //        {
+        //            queryPoint = points[j];
+
+        //            leftRightResult = LeftRightCheck(pointA, pointB, queryPoint);
+        //            if (leftRightResult > 0)
+        //            {
+        //                convexHullPointToBeAdded = points[j];
+        //                pointB = points[j];
+
+        //                tempIndex = j;
+        //            }
+        //        }
+
+        //    }
+        //    i++;
+        //    if (convexHullPointToBeAdded == pointA || convexHullPointToBeAdded == new Vector3(0.0f, 0.0f, 0.0f))
+        //    {
+        //        convexHullPointToBeAdded = pointB;
+        //        tempIndex = j;
+        //    }
+        //    convexHullPoints.Add(convexHullPointToBeAdded);
+        //    i = tempIndex;
+
+        //    if (pointB == endPoint || convexHullPoints.Contains(endPoint))
+        //    {
+        //        break;
+        //    }
+        //    firstPass = false;
+        //}
+        convexHullPoints = convexStack;
         isGenerated = true;
     }
 
@@ -219,8 +303,42 @@ public class ConvexHullConstructor : MonoBehaviour
         }
     }
 
-}
+    public class AngleComparer : IComparer<Vector3>
+    {
+        Vector3 mReferencePoint;
 
+        public AngleComparer(Vector3 referencePoint)
+        {
+            mReferencePoint = referencePoint;
+        }
+
+        public int Compare(Vector3 a, Vector3 b)
+        {
+            var first = Vector3.Normalize(a - mReferencePoint);
+            var second = Vector3.Normalize(b - mReferencePoint);
+            return -Vector3.Dot(first, Vector3.right).CompareTo(Vector3.Dot(second, Vector3.right));
+        }
+
+        // Calls CaseInsensitiveComparer.Compare with the parameters reversed.
+
+    }
+
+    public void SortByAngle(ref List<Vector3> points)
+    {
+        //Find Angle based on initial point and Z Axis
+        var startPoint = points[0];
+        AngleComparer comparer = new AngleComparer(startPoint);
+
+        var zAxis = -Vector3.forward;
+
+
+        points.Sort(1, points.Count - 1, comparer);
+
+
+
+    }
+
+}
 
 
 
@@ -280,3 +398,7 @@ public class ConvexHullConstructor : MonoBehaviour
 //    }
 //    isGenerated = true;
 //}
+
+
+
+
