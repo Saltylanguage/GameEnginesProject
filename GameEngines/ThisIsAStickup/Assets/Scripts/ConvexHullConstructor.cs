@@ -25,88 +25,59 @@ using System.Collections.Generic;
 public class ConvexHullConstructor : MonoBehaviour
 {
     List<Vector3> roomPositions = new List<Vector3>();
-    List<Vector3> convexHullPoints = new List<Vector3>();
 
-    Vector3 pointA;
-    Vector3 pointB;
-    Vector3 queryPoint;
+    public List<Vector3> allPoints = new List<Vector3>();
+    public List<Vector3> convexHullPoints = new List<Vector3>();
 
-    Vector3 convexHullPointToBeAdded;
-
+    public List<Geometry.Triangle> triangleList;
+   
     Vector3 endPoint;
 
-    List<Vector3> testPoints = new List<Vector3>();
-
-    float leftRightResult;
-
-    int i = 0;
-    int j = 0;
-
-    int tempIndex = 0;  // temporary value to reset index when a convex hull candidate is found.
-
     public bool isGenerated = false;
-
-    bool firstPass = true;
-
     bool stopFlag = false;
-
 
     // Use this for initialization                                       
     void Start()
     {
-
-        //testPoints.Add(new Vector3(1, 0, 8));
-        //testPoints.Add(new Vector3(-3, 0, 4));
-        //testPoints.Add(new Vector3(1, 0, 1));
-        //testPoints.Add(new Vector3(-1, 0, 8));
-        //testPoints.Add(new Vector3(-2, 0, 0));
-        //testPoints.Add(new Vector3(1, 0, 2));
-        //testPoints.Add(new Vector3(-2, 0, 6));
-        //testPoints.Add(new Vector3(0, 0, 0));
-
-
-        //testPoints.Add(new Vector3(69, 7, 0));      // fixed
-        //testPoints.Add(new Vector3(0, 92, 0));      // ok
-        //testPoints.Add(new Vector3(12, 60, 0));     // ok
-        //testPoints.Add(new Vector3(35, 28, 0));     // ok
-        //testPoints.Add(new Vector3(42, 6, 0));      // fixed
-        //testPoints.Add(new Vector3(44, 18, 0));     // ok
-        //testPoints.Add(new Vector3(150, 45, 0));     // ok
-        //testPoints.Add(new Vector3(52, 14, 0));     // ok
-        //testPoints.Add(new Vector3(0, 0, 0));
-        //testPoints.Add(new Vector3(58, 19, 0));     // fixed
-        //testPoints.Add(new Vector3(66, 9, 0));     // ok
-        //testPoints.Add(new Vector3(78, 78, 0));
-        //testPoints.Add(new Vector3(80, 124, 0));     // ok
-        //testPoints.Add(new Vector3(25, 10, 0));     // ok
-        //testPoints.Add(new Vector3(18, 22, 0));
-        //testPoints.Add(new Vector3(8, 10, 0));
-        //testPoints.Add(new Vector3(44, 4, 0));
-        //testPoints.Add(new Vector3(39, 39, 0));
-
         float y = 0.0f;
         for (int index = 0; index < 25; index++)
         {
             float randx = Random.Range(0, 100);
             float randz = Random.Range(0, 100);
 
-            testPoints.Add(new Vector3(randx, y, randz));
+            allPoints.Add(new Vector3(randx, y, randz));
         }
 
-        testPoints.Sort((a, b) => a.z.CompareTo(b.z));
+        allPoints.Sort((a, b) => a.z.CompareTo(b.z));
 
-        SortByAngle(ref testPoints);
-        //do not do dis
-        //convexHullPoints = testPoints;
-        GenerateConvexHull(testPoints);
+        SortByAngle(ref allPoints);
+        GenerateConvexHull();
 
+        Triangulator triangulator = Instantiate<Triangulator>(new Triangulator());
+
+        triangulator.allPoints = allPoints;
+        triangulator.ConvexHullPoints = convexHullPoints;
+
+        triangulator.innerPoints = allPoints;
+
+        for (int i = 0; i < triangulator.innerPoints.Count; i++)
+        {
+            if (convexHullPoints.Contains(triangulator.innerPoints[i]))
+            {
+                triangulator.innerPoints.Remove(triangulator.innerPoints[i]);
+            }
+        }
+
+        triangulator.RunTriangulator();
+
+        triangleList = triangulator.triangles;
     }
 
-    public void GeneratePoints(List<Vector3> points)
+    public void GeneratePoints()
     {
-        for (int index = 0; index < points.Count; index++)
+        for (int index = 0; index < allPoints.Count; index++)
         {
-            roomPositions.Add(points[index]);
+            roomPositions.Add(allPoints[index]);
         }
     }
 
@@ -121,9 +92,6 @@ public class ConvexHullConstructor : MonoBehaviour
 
         return ret;
     }
-
-
-
 
     public void DrawConvexHull()
     {
@@ -142,9 +110,9 @@ public class ConvexHullConstructor : MonoBehaviour
     void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        for (int i = 0; i < testPoints.Count; i++)
+        for (int i = 0; i < allPoints.Count; i++)
         {
-            Gizmos.DrawSphere(testPoints[i], 2.0f);
+            Gizmos.DrawSphere(allPoints[i], 2.0f);
         }
     }
     // Update is called once per frame
@@ -152,7 +120,7 @@ public class ConvexHullConstructor : MonoBehaviour
     {
         //if (!isGenerated)
         //{
-        //    GenerateConvexHull(testPoints);
+        //    GenerateConvexHull(allPoints);
         //}
         DrawConvexHull();
     }
@@ -162,17 +130,10 @@ public class ConvexHullConstructor : MonoBehaviour
     void FindEndPoint(List<Vector3> points) //Assuming Sorted List, and first point is leftmost
     {
         endPoint = points[0];
-        //for (int index = 0; index < points.Count; index++)
-        //{
-        //    if (points[index].x < endPoint.x)
-        //    {
-        //        endPoint = points[index];
-        //    }
-        //}
     }
 
 
-    public void GenerateConvexHull(List<Vector3> points)
+    public void GenerateConvexHull()
     {
 
         // Find the bottom most point and add it to the stack
@@ -180,16 +141,16 @@ public class ConvexHullConstructor : MonoBehaviour
 
         // Algorithm
 
-        List<Vector3> convexStack = new List<Vector3>();
-        convexStack.Add(points[0]);
-        convexStack.Add(points[1]);
+        List<Vector3> convexStack = new List<Vector3>();        
+        convexStack.Add(allPoints[0]);
+        convexStack.Add(allPoints[1]);
 
 
-        for (int i = 2; i < points.Count; ++i)
+        for (int i = 2; i < allPoints.Count; ++i)
         {
             //  Step 1 
             //  Grab next point(n) in the list,
-            Vector3 temp = points[i];
+            Vector3 temp = allPoints[i];
             Vector3 a = convexStack[convexStack.Count - 2];
             Vector3 b = convexStack[convexStack.Count - 1];
             
@@ -215,7 +176,6 @@ public class ConvexHullConstructor : MonoBehaviour
 
         }
 
-
         //  Step 2
         //  Make a line with the top 2 points from the stack, and another line with point(n) and the top stack.  If cross product is negative left turn, otherwise right turn 
 
@@ -223,63 +183,6 @@ public class ConvexHullConstructor : MonoBehaviour
         //  if left add to stack and move to next point
         //  if right pop and repeat step 2
 
-
-
-
-
-
-
-        //while (!convexHullPoints.Contains(endPoint) || stopFlag)
-        //{
-        //    if (i == 0)
-        //    {
-        //        pointA = endPoint;
-        //    }
-        //    else
-        //    {
-        //        pointA = points[i];
-        //    }
-        //    if (i + 1 >= points.Count)
-        //    {
-        //        pointB = points[0];
-        //    }
-        //    else
-        //    {
-        //        pointB = points[i + 1];
-        //    }
-
-        //    for (j = 0; j < points.Count; j++)
-        //    {
-        //        if ((i != j) && (i + 1 != j))
-        //        {
-        //            queryPoint = points[j];
-
-        //            leftRightResult = LeftRightCheck(pointA, pointB, queryPoint);
-        //            if (leftRightResult > 0)
-        //            {
-        //                convexHullPointToBeAdded = points[j];
-        //                pointB = points[j];
-
-        //                tempIndex = j;
-        //            }
-        //        }
-
-        //    }
-        //    i++;
-        //    if (convexHullPointToBeAdded == pointA || convexHullPointToBeAdded == new Vector3(0.0f, 0.0f, 0.0f))
-        //    {
-        //        convexHullPointToBeAdded = pointB;
-        //        tempIndex = j;
-        //    }
-        //    convexHullPoints.Add(convexHullPointToBeAdded);
-        //    i = tempIndex;
-
-        //    if (pointB == endPoint || convexHullPoints.Contains(endPoint))
-        //    {
-        //        break;
-        //    }
-        //    firstPass = false;
-        //}
         convexHullPoints = convexStack;
         isGenerated = true;
     }
@@ -318,9 +221,6 @@ public class ConvexHullConstructor : MonoBehaviour
             var second = Vector3.Normalize(b - mReferencePoint);
             return -Vector3.Dot(first, Vector3.right).CompareTo(Vector3.Dot(second, Vector3.right));
         }
-
-        // Calls CaseInsensitiveComparer.Compare with the parameters reversed.
-
     }
 
     public void SortByAngle(ref List<Vector3> points)
@@ -333,71 +233,10 @@ public class ConvexHullConstructor : MonoBehaviour
 
 
         points.Sort(1, points.Count - 1, comparer);
-
-
-
     }
 
 }
 
-
-
-
-
-
-//public void ConstructConvexHull()
-//{
-//    while (!convexHullPoints.Contains(endPoint))
-//    {
-//        if (i >= roomPositions.Count)
-//        {
-//            i = roomPositions.Count - 1;
-//        }
-//        pointA = roomPositions[i];
-//        if (i + 1 >= roomPositions.Count)
-//        {
-//            pointB = roomPositions[0];
-//        }
-//        else
-//        {
-//            pointB = roomPositions[i + 1];
-//        }
-
-//        for (j = 0; j < roomPositions.Count; j++)
-//        {
-//            if ((i != j) && (i + 1 != j))
-//            {
-//                queryPoint = roomPositions[j];
-
-//                leftRightResult = LeftRightCheck(pointA, pointB, queryPoint);
-//                if (leftRightResult > 0)
-//                {
-//                    convexHullPointToBeAdded = roomPositions[j];
-//                    pointB = roomPositions[j];
-
-//                    tempIndex = j;
-//                }
-//            }
-
-//        }
-//        i++;
-//        if (convexHullPointToBeAdded == pointA)
-//        {
-//            convexHullPointToBeAdded = pointB;
-//            tempIndex = j;
-//        }
-//        convexHullPoints.Add(convexHullPointToBeAdded);
-//        i = tempIndex;
-
-//        if (pointB == endPoint || convexHullPoints.Contains(endPoint))
-//        {
-//            isGenerated = true;
-//            break;
-//        }
-
-//    }
-//    isGenerated = true;
-//}
 
 
 
