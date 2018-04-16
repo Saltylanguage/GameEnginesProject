@@ -7,18 +7,18 @@ public class Geometry : MonoBehaviour {
 
     public struct Line
     {
-        public Line(Vector2 pointA, Vector2 pointB)
+        public Line(Vector3 pointA, Vector3 pointB)
         {
-            a = pointA.y - pointB.y;
+            a = pointA.z - pointB.z;
             b = pointA.x - pointB.x;
-            c = a * pointA.x + b * pointB.y;
+            c = (a * pointA.x) + (b * pointB.z);
 
             start = pointA;
             end = pointB;
         }
 
-        public Vector2 start;
-        public Vector2 end;
+        public Vector3 start;
+        public Vector3 end;
 
         public float a;
         public float b;
@@ -27,7 +27,7 @@ public class Geometry : MonoBehaviour {
 
     public class Triangle
     {
-        public Triangle(Vector2 a, Vector2 b, Vector2 c)
+        public Triangle(Vector3 a, Vector3 b, Vector3 c)
         {
             pointA = a;
             pointB = b;
@@ -35,12 +35,12 @@ public class Geometry : MonoBehaviour {
             CalculateLines();
 
             minXY.x = Mathf.Min(Mathf.Min(pointA.x, pointB.x), pointC.x);
-            minXY.y = Mathf.Min(Mathf.Min(pointA.y, pointB.y), pointC.y);
+            minXY.y = Mathf.Min(Mathf.Min(pointA.z, pointB.z), pointC.z);
         }
 
-        public Vector2 pointA;
-        public Vector2 pointB;
-        public Vector2 pointC;
+        public Vector3 pointA;
+        public Vector3 pointB;
+        public Vector3 pointC;
 
         public Line[] lines = new Line[3];
 
@@ -56,6 +56,10 @@ public class Geometry : MonoBehaviour {
             AB = new Line(pointA, pointB);
             BC = new Line(pointB, pointC);
             CA = new Line(pointC, pointA);
+
+            lines[0] = AB;
+            lines[1] = BC;
+            lines[2] = CA;
         }
     }
 

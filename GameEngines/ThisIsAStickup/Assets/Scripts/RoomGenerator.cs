@@ -10,7 +10,7 @@ public class RoomGenerator : MonoBehaviour
     public float xThreshold;
     public float yThreshold;
 
-    public static List<Vector2> randomPoints = new List<Vector2>();
+    public static List<Vector3> randomPoints = new List<Vector3>();
     public static List<float> xRange = new List<float>();
     public static List<float> zRange = new List<float>();
 
@@ -35,9 +35,9 @@ public class RoomGenerator : MonoBehaviour
 
 
 
-    public static Vector2 GetRandomPoint()
+    public static Vector3 GetRandomPoint()
     {
-        Vector2 ret = new Vector2();
+        Vector3 ret = new Vector3();
 
         ret = Random.insideUnitCircle;
         ret *= radius;
@@ -70,7 +70,7 @@ public class RoomGenerator : MonoBehaviour
             
 
             allRooms[i].transform.localScale = new Vector3(xRange[i], 10, zRange[i]);
-            allRooms[i].transform.position = new Vector3(randomPoints[i].x, 10, randomPoints[i].y);
+            allRooms[i].transform.position = new Vector3(randomPoints[i].x, 10, randomPoints[i].z);
 
             xSum += allRooms[i].transform.localScale.x;
             zSum += allRooms[i].transform.localScale.z;

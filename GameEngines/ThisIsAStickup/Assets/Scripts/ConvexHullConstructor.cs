@@ -31,13 +31,39 @@ public class ConvexHullConstructor : MonoBehaviour
 
     public List<Geometry.Triangle> triangleList;
    
-    Vector3 endPoint;
-
     public bool isGenerated = false;
-    bool stopFlag = false;
+    
 
     // Use this for initialization                                       
     void Start()
+    {
+        GeneratePoints();
+        Sort();
+        GenerateConvexHull();
+
+        //Triangulator triangulator = new Triangulator();
+
+        //triangulator.allPoints = allPoints;
+        //triangulator.convexHullPoints = convexHullPoints;
+
+        //triangulator.innerPoints = allPoints;
+
+        //for (int i = 0; i < triangulator.innerPoints.Count; i++)
+        //{
+        //    if (convexHullPoints.Contains(triangulator.innerPoints[i]))
+        //    {
+        //        triangulator.innerPoints.Remove(triangulator.innerPoints[i]);
+        //    }
+        //}
+
+        //triangulator.RunTriangulator();
+
+        //triangleList = triangulator.triangles;
+    }
+
+    //START
+
+    public void GeneratePoints()
     {
         float y = 0.0f;
         for (int index = 0; index < 25; index++)
@@ -46,38 +72,6 @@ public class ConvexHullConstructor : MonoBehaviour
             float randz = Random.Range(0, 100);
 
             allPoints.Add(new Vector3(randx, y, randz));
-        }
-
-        allPoints.Sort((a, b) => a.z.CompareTo(b.z));
-
-        SortByAngle(ref allPoints);
-        GenerateConvexHull();
-
-        Triangulator triangulator = Instantiate<Triangulator>(new Triangulator());
-
-        triangulator.allPoints = allPoints;
-        triangulator.ConvexHullPoints = convexHullPoints;
-
-        triangulator.innerPoints = allPoints;
-
-        for (int i = 0; i < triangulator.innerPoints.Count; i++)
-        {
-            if (convexHullPoints.Contains(triangulator.innerPoints[i]))
-            {
-                triangulator.innerPoints.Remove(triangulator.innerPoints[i]);
-            }
-        }
-
-        triangulator.RunTriangulator();
-
-        triangleList = triangulator.triangles;
-    }
-
-    public void GeneratePoints()
-    {
-        for (int index = 0; index < allPoints.Count; index++)
-        {
-            roomPositions.Add(allPoints[index]);
         }
     }
 
@@ -115,31 +109,14 @@ public class ConvexHullConstructor : MonoBehaviour
             Gizmos.DrawSphere(allPoints[i], 2.0f);
         }
     }
-    // Update is called once per frame
-    void Update()
-    {
-        //if (!isGenerated)
-        //{
-        //    GenerateConvexHull(allPoints);
-        //}
-        DrawConvexHull();
-    }
-
-
-
-    void FindEndPoint(List<Vector3> points) //Assuming Sorted List, and first point is leftmost
-    {
-        endPoint = points[0];
-    }
-
 
     public void GenerateConvexHull()
     {
-
+        //Start Conditions:
         // Find the bottom most point and add it to the stack
         // Add p2 to the stack
 
-        // Algorithm
+        // Algorithm:
 
         List<Vector3> convexStack = new List<Vector3>();        
         convexStack.Add(allPoints[0]);
@@ -187,25 +164,6 @@ public class ConvexHullConstructor : MonoBehaviour
         isGenerated = true;
     }
 
-
-    void SetStopFlagToTrue(List<Vector3> points)
-    {
-        for (int index = 0; index < points.Count; index++)
-        {
-            for (int jIndex = 0; jIndex < points.Count; jIndex++)
-            {
-                if (index != jIndex)
-                {
-                    if (points[index] == points[jIndex])
-                    {
-                        stopFlag = true;
-                    }
-                }
-
-            }
-        }
-    }
-
     public class AngleComparer : IComparer<Vector3>
     {
         Vector3 mReferencePoint;
@@ -235,6 +193,21 @@ public class ConvexHullConstructor : MonoBehaviour
         points.Sort(1, points.Count - 1, comparer);
     }
 
+    public void Sort()
+    {
+        allPoints.Sort((a, b) => a.z.CompareTo(b.z));
+
+        SortByAngle(ref allPoints);
+    }
+
+
+    //END
+
+    // Update is called once per frame
+    void Update()
+    {
+        DrawConvexHull();
+    }
 }
 
 
