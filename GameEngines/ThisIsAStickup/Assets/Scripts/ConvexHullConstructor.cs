@@ -32,6 +32,8 @@ public class ConvexHullConstructor : MonoBehaviour
     public List<Geometry.Triangle> triangleList;
    
     public bool isGenerated = false;
+
+   
     
 
     // Use this for initialization                                       

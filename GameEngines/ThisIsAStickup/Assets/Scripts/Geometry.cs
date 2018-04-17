@@ -5,25 +5,31 @@ using UnityEngine;
 public class Geometry : MonoBehaviour {
 
 
-    public struct Line
+    public class Line
     {
+        public Line()
+        { }
+
         public Line(Vector3 pointA, Vector3 pointB)
         {
-            a = pointA.z - pointB.z;
-            b = pointA.x - pointB.x;
-            c = (a * pointA.x) + (b * pointB.z);
 
             start = pointA;
             end = pointB;
+
+            rise = pointA.z - pointB.z;
+            run = pointA.x - pointB.x;
+            c = (rise * start.x) + (run * end.z);
         }
 
         public Vector3 start;
         public Vector3 end;
 
-        public float a;
-        public float b;
+        public float rise;
+        public float run;
         public float c;
     }
+
+
 
     public class Triangle
     {
@@ -63,9 +69,31 @@ public class Geometry : MonoBehaviour {
         }
     }
 
+    public class Circle
+    {
+        public Circle()
+        {
+            center = Vector3.zero;
+            radius = 1.0f;
+        }
+
+        public Circle(Vector3 position, float scale)
+        {
+            center = position;
+            radius = scale;
+        }
+
+        public Vector3 center;
+        public float radius;
+    }
+
+   
+
+
+
     // Use this for initialization
     void Start () {
-		
+
 	}
 	
 	// Update is called once per frame
