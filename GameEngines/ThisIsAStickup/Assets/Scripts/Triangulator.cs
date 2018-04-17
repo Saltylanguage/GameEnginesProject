@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using UnityEditor;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -58,7 +59,8 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
     Vector3[] intersectionPoints = new Vector3[3];
     public Geometry.Line[] testLines = new Geometry.Line[3];
 
-    int intersectionCount = 0;
+
+    int circleIndex = 0;
     bool stopFlag = false;
 
     // Use this for initialization
@@ -83,36 +85,45 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         DrawTriangles();
         Debug.DrawLine(fromPointToRight.start, fromPointToRight.end, Color.cyan);
 
-        Debug.DrawLine(testLines[0].start, testLines[0].end, Color.red);
-        Debug.DrawLine(testLines[1].start, testLines[1].end, Color.green);
-        Debug.DrawLine(testLines[2].start, testLines[2].end, Color.blue);
+        Vector3 midPoint = CalculateMidpoint(triangles[circleIndex].lines[0]);
+        Vector3 temp = midPoint - triangles[circleIndex].lines[0].start;
+        Vector3 bisector = new Vector3();
+        bisector.x = -temp.z;
+        bisector.y = 0.0f;
+        bisector.z = temp.x;
+
+        Geometry.Line lineA = new Geometry.Line(midPoint, bisector + midPoint);
+
+        Debug.DrawLine(lineA.start, lineA.end, Color.green);
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            Debug.Log("Yo");
+            circleIndex++;
+            if (circleIndex >= circumCircleList.Count)
+            {
+                circleIndex = 0;
+            }
+        }
     }
 
-
-    Vector3 FindIntersectionPoint(Geometry.Line l1, Geometry.Line l2)
+    void OnDrawGizmosSelected()
     {
-        float det = l1.rise * l2.run - l2.rise * l1.run;
-        float x = float.MinValue;
-        float y = float.MinValue;
-        if (det == 0)
-        {
-            //Geometry.Lines are parallel
-        }
-        else
-        {
-            x = ((l2.run * l1.c) - (l1.run * l2.c)) / det;
-            y = ((l1.rise * l2.c) - (l2.rise * l1.c)) / det;
-        }
-
-        return new Vector3(x, 0, y);
+        Handles.color = Color.cyan;
+        Handles.DrawWireDisc(circumCircleList[circleIndex].center, Vector3.up, circumCircleList[circleIndex].radius);
     }
 
     void Triangulate()
     {
         FirstTriangulatePass();
         SubDivideTriangles();
-    }
 
+        for (int i = 0; i < triangles.Count; i++)
+        {
+            circumCircleList.Add(CalculateCircumcircle(triangles[i]));
+        }
+
+    }
     void FirstTriangulatePass()
     {
         for (int i = 1; i < convexHullPoints.Count - 2; i++)
@@ -121,7 +132,6 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         }
         triangles.Add(new Geometry.Triangle(convexHullPoints[0], convexHullPoints[convexHullPoints.Count - 2], convexHullPoints[convexHullPoints.Count - 1]));
     }
-
     void SubDivideTriangles()
     {
         bool triangleFound = false;
@@ -155,6 +165,95 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
                 }
             }
         }
+    }
+
+    public Vector3 CalculateMidpoint(Geometry.Line line)
+    {
+        float x = (line.end.x + line.start.x) / 2.0f;
+        float y = 0;
+        float z = (line.end.z + line.start.z) / 2.0f;
+        Vector3 midpoint = new Vector3(x, y, z);
+
+        return midpoint;
+    }
+    public Vector3 FindIntersection(Geometry.Line A, Geometry.Line B)
+    {
+        float A1 = A.end.z - A.start.z;
+        float B1 = A.start.x - A.end.x;
+        float C1 = A1 * A.start.x + B1 * A.start.z;
+
+        float A2 = B.end.z - B.start.z;
+        float B2 = B.start.x - B.end.x;
+        float C2 = A2 * B.start.x + B2 * B.start.z;
+
+        float det = A1 * B2 - A2 * B1;
+        if (det == 0)
+        {
+            return Vector3.up;
+        }
+        else
+        {
+            float x = (B2 * C1 - B1 * C2) / det;
+            float z = (A1 * C2 - A2 * C1) / det;
+            return new Vector3(x, 0, z);
+        }
+    }
+    public Geometry.Circle CalculateCircumcircle(Geometry.Triangle triangle)
+    {
+        Vector3[] midpoints = new Vector3[3];
+        Vector3[] bisectors = new Vector3[3];
+
+        Geometry.Line[] edges = new Geometry.Line[3];
+
+        for (int i = 0; i < 3; i++)
+        {
+            midpoints[i] = CalculateMidpoint(triangle.lines[i]);
+
+            Vector3 temp = midpoints[i] - triangle.lines[i].start;
+
+            bisectors[i].x = -temp.z;
+            bisectors[i].y = 0.0f;
+            bisectors[i].z = temp.x;
+        }
+
+
+        edges[0] = new Geometry.Line(midpoints[0], bisectors[0] + midpoints[0]);
+        edges[1] = new Geometry.Line(midpoints[1], bisectors[1] + midpoints[1]);
+        edges[2] = new Geometry.Line(midpoints[2], bisectors[2] + midpoints[2]);
+
+        testLines[0] = edges[0];
+        testLines[1] = edges[1];
+        testLines[2] = edges[2];
+
+        intersectionPoints[0] = FindIntersection(edges[0], edges[1]);
+        intersectionPoints[1] = FindIntersection(edges[1], edges[2]);
+        intersectionPoints[2] = FindIntersection(edges[2], edges[0]);
+        bool isCenter = (intersectionPoints[0] == intersectionPoints[1] && intersectionPoints[1] == intersectionPoints[2]);
+
+        Vector3 vertexPosition = edges[0].start;
+
+
+        Vector3 circlePosition = intersectionPoints[0];
+        float distanceA = Vector3.Distance(triangle.pointA, circlePosition);
+        float distanceB = Vector3.Distance(triangle.pointB, circlePosition);
+        float distanceC = Vector3.Distance(triangle.pointC, circlePosition);
+
+        bool equidistance = (distanceA == distanceB && distanceB == distanceC);
+
+
+        //WE HAVE MIDPOINTS!
+        //WE HAVE BISECTORS!
+        //WE HAVE LINES!
+        //WE HAVE INTERSECTION POINTS (POSITION)
+
+
+        //Radius is wrong....
+        float maxDistance = Mathf.Max(distanceA, distanceB, distanceC);
+        //float cirlceRadius = Vector3.Distance(vertexPosition, circlePosition);
+
+
+
+        return new Geometry.Circle(circlePosition, maxDistance);
     }
 
     public void CreateXAndYPoints()
@@ -192,11 +291,11 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         SortYPoints();
     }
 
-    public void RunTriangulator()
-    {
-        SortPoints();
-        Triangulate();
-    }
+    //public void RunTriangulator()
+    //{
+    //    SortPoints();
+    //    Triangulate();
+    //}
 
     //CONVEX HULL CODE STARTS HERE
 
@@ -250,19 +349,21 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
     void OnDrawGizmos()
     {
         Gizmos.color = Color.blue;
-        Gizmos.DrawSphere(allPoints[0], 2.0f);
+        Gizmos.DrawSphere(allPoints[0], 0.5f);
         Gizmos.color = Color.red;
         for (int i = 1; i < allPoints.Count; i++)
         {
-            Gizmos.DrawSphere(allPoints[i], 2.0f);
+            Gizmos.DrawSphere(allPoints[i], 0.5f);
 
         }
         Gizmos.color = Color.green;
-        for (int i = 0; i < 3; i++)
-        {
-            Gizmos.DrawCube(intersectionPoints[i], new Vector3(1, 1, 1));
-        }
-        //Gizmos.DrawSphere(testCircumCircle.center, testCircumCircle.radius);
+
+        Gizmos.DrawCube(circumCircleList[circleIndex].center, new Vector3(1, 1, 1));
+
+
+
+
+
     }
     public void DrawConvexHull()
     {
@@ -411,158 +512,29 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         }
     }
 
-    public bool Intersect(Geometry.Line a, Geometry.Line b)
+    public void EdgeFlip(Geometry.Circle circle)
     {
 
-        // http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/
-
-        float ua = ((a.end.x - a.start.x) * (b.start.y - a.start.y)) - ((a.end.y - a.start.y) * (b.start.x - a.start.x));
-        float ub = ((b.end.x - b.start.x) * (b.start.y - a.start.y)) - ((b.end.y - b.start.y) * (b.start.x - a.start.x));
-        float denom = ((a.end.y - a.start.y) * (b.end.x - b.start.x)) - ((a.end.x - a.start.x) * (b.end.y - b.start.y));
-
-        // First check for special cases
-        if (denom == 0.0f)
+        List<Vector3> pointsInCircle = new List<Vector3>();
+        for(int i = 0; i < allPoints.Count; i++)
         {
-
-            if (ua == 0.0f && ub == 0.0f)
+            if(PointInsideCircle(circle, allPoints[i]))
             {
-                // The line segments are the same
-                return true;
-            }
-            else
-            {
-                // The line segments are parallel
-                return false;
+                pointsInCircle.Add(allPoints[i]); 
             }
         }
 
-        ua /= denom;
-        ub /= denom;
-
-        if (ua < 0.0f || ua > 1.0f || ub < 0.0f || ub > 1.0f)
-        {
-            return false;
-        }
-
-        return true;
-
     }
-    public int GetNumIntersections(Geometry.Triangle triangle, Geometry.Line pointToRight)
+
+
+    public bool PointInsideCircle(Geometry.Circle circle, Vector3 point)
     {
-        int index;
-        for (int i = 0; i < 3; i++)
-        {
-            if (Intersect(triangle.lines[i], pointToRight))
-            {
-                intersectionCount++;
-                if (i == 2)
-                {
-                    index = 0;
-                }
-                else
-                {
-                    index = i + 1;
-                }
-                Vector3 intersection = FindIntersectionPoint(triangle.lines[index], pointToRight);
+        float distance = Vector3.Distance(point, circle.center);
 
-                pointToRight = new Geometry.Line(intersection, intersection + (Vector3.right * 100));
-                fromPointToRight = pointToRight;
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        return intersectionCount;
+        return distance < circle.radius;
     }
 
 
-    public Geometry.Circle CalculateCircumcircle(Geometry.Triangle triangle)
-    {
-        Vector3[] midpoints = new Vector3[3];
-        Vector3[] bisectors = new Vector3[3];
-
-        Geometry.Line[] edges = new Geometry.Line[3];
-
-
-
-        for (int i = 0; i < 3; i++)
-        {
-            midpoints[i] = CalculateMidpoint(triangle.lines[i]);
-
-            Vector3 temp = midpoints[i] - triangle.lines[i].start;
-
-            bisectors[i].x = -temp.z;
-            bisectors[i].y = 0.0f;
-            bisectors[i].z = temp.x;
-        }
-
-
-        edges[0] = new Geometry.Line(midpoints[0], bisectors[0] + midpoints[0]);
-        edges[1] = new Geometry.Line(midpoints[1], bisectors[1] + midpoints[1]);
-        edges[2] = new Geometry.Line(midpoints[2], bisectors[2] + midpoints[2]);
-
-
-
-
-        if (!stopFlag)
-        {
-            testLines[0] = edges[0];
-            testLines[1] = edges[1];
-            testLines[2] = edges[2];
-            stopFlag = true;
-        }
-        intersectionPoints[0] = FindIntersection(edges[0], edges[1]);
-        intersectionPoints[1] = FindIntersection(edges[1], edges[2]);
-        intersectionPoints[2] = FindIntersection(edges[2], edges[0]);
-        bool isCenter = (intersectionPoints[0] == intersectionPoints[1] && intersectionPoints[1] == intersectionPoints[2]);
-
-        Vector3 vertexPosition = edges[0].start;
-        Vector3 circlePosition = intersectionPoints[0];
-        float cirlceRadius = Vector3.Distance(vertexPosition, circlePosition);
-        //WE HAVE MIDPOINTS!
-        //WE HAVE BISECTORS!
-        //WE HAVE LINES!
-        //WE HAVE INTERSECTION POINTS (POSITION)
-        //WE HAVE DISTANCE (RADIUS)
-        //WE HAVE THE CIRCLE!
-
-        return new Geometry.Circle(circlePosition, cirlceRadius);
-    }
-
-    public Vector3 CalculateMidpoint(Geometry.Line line)
-    {
-        float x = (line.end.x + line.start.x) / 2.0f;
-        float y = 0;
-        float z = (line.end.z + line.start.z) / 2.0f;
-        Vector3 midpoint = new Vector3(x, y, z);
-
-        return midpoint;
-    }
-
-    public Vector3 FindIntersection(Geometry.Line A, Geometry.Line B)
-    {
-        float A1 = A.end.z - A.start.z;
-        float B1 = A.start.x - A.end.x;
-        float C1 = A1 * A.start.x + B1 * A.start.z;
-
-        float A2 = B.end.z - B.start.z;
-        float B2 = B.start.x - B.end.x;
-        float C2 = A2 * B.start.x + B2 * B.start.z;
-
-        float det = A1 * B2 - A2 * B1;
-        if (det == 0)
-        {
-            return Vector3.up;
-        }
-        else
-        {
-            float x = (B2 * C1 - B1 * C2) / det;
-            float z = (A1 * C2 - A2 * C1) / det;
-            return new Vector3(x, 0, z);
-        }
-    }
 
 
 }
