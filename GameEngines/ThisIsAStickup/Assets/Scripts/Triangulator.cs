@@ -515,13 +515,55 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
     public void EdgeFlip(Geometry.Circle circle)
     {
 
+        //PSUEDO
+        // Find all the points inside the circumCircle
+        // For each of these points:
+        // Find all triangles that include the point
+        // For each of these triangles
+        // Check adjacency
+        // if adjacent:
+        // Check the sum of the angles formed by the uncommon edges
+        // if angle > 180
+        // edge flip:
+
+        //NOTE: for edge flip to work points must be in correct order:
+        //Order: P1 = The uncommon point of the circumcircle's triangle
+        //       P2 = going clockwise - the first point in the common edge
+        //       P3 = continuing clockwise - the second point in the common edge
+        //       P4 = the uncommon point in the adjacent triangle
+
+        //Using these 4 points we can flip an edge to create two new triangles:
+
+        // Right now the two triangles are: 
+        // 1) P1P2P3
+        // 2) P2P4P3
+
+        // Flipping the edge means deleting adding two new triangles to the list and deleting the original 2 triangles from the list.
+        // The two new triangles are: 
+        // 1)P1P2P4
+        // 2)P1P4P3
+
+        //Add these two new triangles (P1P2P4 and P1P4P3) to the end of the list and remove the two we started with (P1P2P3 and P2P4P3)
+
+
+        //NOTE: when adding and removing triangles, take care to ensure that the indices of the cirumcircles still reflect the indices of the triangle list 
+        //alternatively you can just recalculate circumcircles if you don't care about efficiency.  
+        //yet another option would be to create a data structure containing triangles and their circles to guarantee they have the same index.
+        
         List<Vector3> pointsInCircle = new List<Vector3>();
-        for(int i = 0; i < allPoints.Count; i++)
+        for (int i = 0; i < allPoints.Count; i++)
         {
-            if(PointInsideCircle(circle, allPoints[i]))
+            if (PointInsideCircle(circle, allPoints[i]))
             {
-                pointsInCircle.Add(allPoints[i]); 
+                pointsInCircle.Add(allPoints[i]);
             }
+        }
+
+        for(int i = 0; i < pointsInCircle.Count; i++)
+        {
+            List<Geometry.Triangle> pointTriangles = GetAPointsTriangles(pointsInCircle[i]);
+
+
         }
 
     }
@@ -535,7 +577,61 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
     }
 
 
+    public bool Adjacent(Geometry.Triangle A, Geometry.Triangle B)
+    {
+        int count = 0;
 
+        for (int i = 0; i < 3; i++)
+        {
+            if (A.lines[0] == B.lines[i] || A.lines[1] == B.lines[i] || A.lines[2] == B.lines[i])
+            {
+                count++;
+            }
+        }
+        return count == 2;
+    }
+
+
+    //Given a circle find all the points that fall within that circle and return 
+    public List<Vector3> GetPointsInCircumCircle(Geometry.Circle circumCircle)
+    {
+        List<Vector3> insidePoints = new List<Vector3>();
+
+        for (int i = 0; i < allPoints.Count; i++)
+        {
+            if (PointInsideCircle(circumCircle, allPoints[i]))
+            {
+                insidePoints.Add(allPoints[i]);
+            }
+        }
+        return insidePoints;
+    }
+
+
+    //Given a point this function will find all the triangles that point is included in and return a list containing those triangles
+    public List<Geometry.Triangle> GetAPointsTriangles(Vector3 point)
+    {
+        List<Geometry.Triangle> trianglesWithPoint = new List<Geometry.Triangle>();
+
+        for(int i = 0; i < triangles.Count; i++)
+        {
+            for(int j = 0; j < 3; j++)
+            {
+                if(triangles[i].pointA == point || triangles[i].pointB == point || triangles[i].pointC == point)
+                {
+                    trianglesWithPoint.Add(triangles[i]);
+                }
+            }
+        }
+
+        return trianglesWithPoint;
+    }
+
+
+    //Grab all points inside circumcircle
+
+    //Test each point for adjacency
+    //if adjacent flip edge
 
 }
 
