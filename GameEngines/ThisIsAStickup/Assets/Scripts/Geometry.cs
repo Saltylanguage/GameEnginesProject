@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class Geometry : MonoBehaviour {
 
+    
+    public static float kPi = 3.14159f;
+    public static float kRadToDeg = 180 / kPi;
+    public static float kDegToRad = kPi / 180;
+
 
     public class Line
     {

@@ -73,7 +73,7 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         GetInnerPoints();
         Triangulate();
 
-        testCircumCircle = CalculateCircumcircle(triangles[0]);
+        // testCircumCircle = CalculateCircumcircle(triangles[0]);
 
     }
 
@@ -123,6 +123,17 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
             circumCircleList.Add(CalculateCircumcircle(triangles[i]));
         }
 
+        int pointCount = 10;
+        while(pointCount >=4)
+        { 
+        //for (int i = 0; i < 1000; i++)
+        //{
+            for (int i = 0; i < triangles.Count; i++)
+            {
+                pointCount = Mathf.Max(pointCount, DelaunayPass(triangles[i], circumCircleList[i]));
+            }
+
+        }
     }
     void FirstTriangulatePass()
     {
@@ -291,11 +302,7 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         SortYPoints();
     }
 
-    //public void RunTriangulator()
-    //{
-    //    SortPoints();
-    //    Triangulate();
-    //}
+
 
     //CONVEX HULL CODE STARTS HERE
 
@@ -359,11 +366,6 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         Gizmos.color = Color.green;
 
         Gizmos.DrawCube(circumCircleList[circleIndex].center, new Vector3(1, 1, 1));
-
-
-
-
-
     }
     public void DrawConvexHull()
     {
@@ -512,19 +514,7 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         }
     }
 
-    public void EdgeFlip(Geometry.Circle circle)
-    {
 
-        List<Vector3> pointsInCircle = new List<Vector3>();
-        for(int i = 0; i < allPoints.Count; i++)
-        {
-            if(PointInsideCircle(circle, allPoints[i]))
-            {
-                pointsInCircle.Add(allPoints[i]); 
-            }
-        }
-
-    }
 
 
     public bool PointInsideCircle(Geometry.Circle circle, Vector3 point)
@@ -534,8 +524,194 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         return distance < circle.radius;
     }
 
+    public bool Adjacent(Geometry.Triangle A, Geometry.Triangle B)
+    {
+
+        int count = 0;
+
+        bool AA = A.pointA == B.pointA || A.pointA == B.pointB || A.pointA == B.pointC;
+        bool AB = A.pointB == B.pointA || A.pointB == B.pointB || A.pointB == B.pointC;
+        bool AC = A.pointC == B.pointA || A.pointC == B.pointB || A.pointC == B.pointC;
+
+        if (AA)
+        {
+            count++;
+        }
+        if (AB)
+        {
+            count++;
+        }
+        if (AC)
+        {
+            count++;
+        }
+
+        return count == 2;
+    }
+
+    public float CalculateAngleInRads(Vector3 start, Vector3 pivot, Vector3 end)
+    {
+        float deltaABx = pivot.x - start.x;
+        float deltaBCx = end.x - pivot.x;
+        float deltaABy = pivot.z - start.z;
+        float deltaBCy = end.z - pivot.z;
+
+        float slopeAB = Mathf.Sqrt(deltaABx * deltaABx + deltaABy * deltaABy);
+        float slopeBC = Mathf.Sqrt(deltaBCx * deltaBCx + deltaBCy * deltaBCy);
+
+        float x = deltaABx * deltaBCx + deltaABy * deltaBCy;
+        float product = slopeAB * slopeBC;
+
+        float y = Mathf.Acos(x / product);
+         
+        return  y * Geometry.kRadToDeg;
+    }
+
+    public Vector3 FindUncommonPoint(Geometry.Triangle A, Geometry.Triangle B)
+    {
+        List<Vector3> APoints = new List<Vector3>();
+        APoints.Add(A.pointA);
+        APoints.Add(A.pointB);
+        APoints.Add(A.pointC);
+
+        for (int i = 0; i < 3; i++)
+        {
+            if (APoints[i] != B.pointA && APoints[i] != B.pointB && APoints[i] != B.pointC)
+            {
+                return APoints[i];
+            }
+        }
+        throw new System.Exception();
+    }
+
+    public List<Vector3> FindPointsFormingAngle(Geometry.Triangle A, Vector3 pivotPoint)
+    {
+        List<Vector3> pointsInOrder = new List<Vector3>();
+        // ensure the list is in start-pivot-end order (put the pivot point in the middle)
+        if (A.pointA == pivotPoint)
+        {
+            pointsInOrder.Add(A.pointB);
+            pointsInOrder.Add(A.pointA);
+            pointsInOrder.Add(A.pointC);
+        }
+        else if (A.pointB == pivotPoint)
+        {
+            pointsInOrder.Add(A.pointA);
+            pointsInOrder.Add(A.pointB);
+            pointsInOrder.Add(A.pointC);
+        }
+        else if (A.pointC == pivotPoint)
+        {
+            pointsInOrder.Add(A.pointA);
+            pointsInOrder.Add(A.pointC);
+            pointsInOrder.Add(A.pointB);
+        }
+        return pointsInOrder;
+    }
+
+    //Returns the number of points inside the circumcircle if >= 4 Delaunay is not finished yet
+    public int DelaunayPass(Geometry.Triangle triangle, Geometry.Circle circle)
+    {
+        int numPoints = 0;
+        List<Vector3> pointsInCircle = new List<Vector3>();
+        for (int i = 0; i < allPoints.Count; i++)
+        {
+            if (PointInsideCircle(circle, allPoints[i]))
+            {
+                pointsInCircle.Add(allPoints[i]);
+            }
+        }
+        numPoints = pointsInCircle.Count;
+        List<Geometry.Triangle> trianglesWithPoint = new List<Geometry.Triangle>();
+        for (int pointIndex = 0; pointIndex < pointsInCircle.Count; pointIndex++)
+        {
+            for (int triangleIndex = 0; triangleIndex < triangles.Count; triangleIndex++)
+            {
+                if (triangles[triangleIndex].pointA == pointsInCircle[pointIndex] ||
+                   triangles[triangleIndex].pointB == pointsInCircle[pointIndex] ||
+                   triangles[triangleIndex].pointC == pointsInCircle[pointIndex])
+                {
+                    trianglesWithPoint.Add(triangles[triangleIndex]);
+                }
+            }
+        }
+
+        for (int i = 0; i < trianglesWithPoint.Count; i++)
+        {
+            if (Adjacent(triangle, trianglesWithPoint[i]))
+            {
+
+                //find the uncommon points
+
+                Vector3[] edgeFlipPoints = new Vector3[4];
+                Vector3 uncommonPoint = FindUncommonPoint(triangle, trianglesWithPoint[i]);
+
+                edgeFlipPoints[0] = uncommonPoint;
+                List<Vector3> pointsFormingAngle = FindPointsFormingAngle(triangle, uncommonPoint);
+                edgeFlipPoints[1] = pointsInCircle[0];
+                edgeFlipPoints[2] = pointsInCircle[2];
+                float theta1 = CalculateAngleInRads(pointsFormingAngle[0], pointsFormingAngle[1], pointsFormingAngle[2]);
+
+                uncommonPoint = FindUncommonPoint(trianglesWithPoint[i], triangle);
+                pointsFormingAngle.Clear();
+                pointsFormingAngle = FindPointsFormingAngle(trianglesWithPoint[i], uncommonPoint);
+                float theta2 = CalculateAngleInRads(pointsFormingAngle[0], pointsFormingAngle[1], pointsFormingAngle[2]); ;
+
+                //check if the sum of the angles made of their uncommon edges is greater than 180 degrees
+                //if angle > 180 flip their edges:
+                if (theta1 + theta2 >= 180)
+                {
+                    //FLIP THAT MUTHAFUCKING EDGE!
 
 
+                    //Triangles P1P2P3 and P2P4P3 when flipped form new triangles  P1P2P4 and P1P4P3
+                    triangles.Add(new Geometry.Triangle(edgeFlipPoints[0], edgeFlipPoints[1], edgeFlipPoints[3]));
+                    triangles.Add(new Geometry.Triangle(edgeFlipPoints[0], edgeFlipPoints[3], edgeFlipPoints[2]));
+                    triangles.Remove(triangle);
+                    triangles.Remove(trianglesWithPoint[i]);
+
+                    circumCircleList.Clear();
+
+                    for (int j = 0; j < triangles.Count; j++)
+                    {
+                        CalculateCircumcircle(triangles[j]);
+                    }
+
+                }
+
+            }
+        }
+        return numPoints;
+    }
+    //PSEUDO
+
+    //Go through each triangle and do the following: (triangleA)
+    //First, get the circumcircle of the triangleA 
+    //Next, get all the points inside the circumcircle
+    //For each of these points:
+    //Get all the the triangles that include the current point
+    //For each of these triangles: (triangleB)
+    //Test triangleA and triangleB for adjacency
+    //if they are adjacent
+    //check if the sum of the angles made of their uncommon edges is greater than 180 degrees
+    //if angle > 180 flip their edges:
+
+    //Edge Flip Algorithm
+    //Needs 4 points:
+    //First point (P1) is the point in triangleA that is uncommon with triangleB
+    //Second point(P2) is the first point (traveling clockwise from P1) on the common edge
+    //Third point (P3) is the second point (traveling clockwise from P1) on the common edge
+    //Fourth point(P4) is the point in triangleB that is unccomon with triangleA
+
+
+    //Finding these points is fairly trivial (a simple contains function will return true or false)
+
+    //MOST IMPORTANT PART!
+    //Triangles P1P2P3 and P2P4P3 when flipped form new triangles  P1P2P4 and P1P4P3
+
+
+    //alternatively, simply find which point are uncommon, delete both triangles, and create two new triangles from these two points and the third point being 
+    //each of the other points no longer part of the common edge.
 
 }
 
