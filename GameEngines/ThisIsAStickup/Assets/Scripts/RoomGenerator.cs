@@ -30,11 +30,6 @@ public class RoomGenerator : MonoBehaviour
     ArchitectureGenerator archGen;    
     ConvexHullConstructor convexGen;
 
-
-
-
-
-
     public static Vector3 GetRandomPoint()
     {
         Vector3 ret = new Vector3();

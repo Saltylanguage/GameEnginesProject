@@ -11,19 +11,14 @@ public class Triangulator : MonoBehaviour
 
     /*
      * 1. Sort all point by their x-coordinate first and by the y-coordinate if the x-coordinate of two points is identical.
-
 2. Take the three first points of the sorted list to form the first triangle. You will need another data structure to remember the convex hull of the points you already have connected. 
     At first, it is all the three line of the first triangle.
-
 3. Now iterate over your sorted list of points. For each point check if you need to connect with the two points of the line segments of the convex hull. This can form a new triangle. 
 If it does you need to check as well if you have to flip the edge of the newly formed triangle and the existing neighboring one. Don't forget to update the convex hull.
-
 Actually, the convex hull is not necessary for the algorithm to work. But, it will speed things up significantly and is not very hard to implement. 
 (Remove an edge from the convex hull if it is part of a new triangle and add the other edges of the new triangle to the convex hull.)
-
 You need data structures that work both ways: A triangle needs to know all its edges and vertices. And the edges need to know the corresponding triangles and its vertices. 
 You should store all this information explicitly. It is easiest to use STL vectors of triangles, edges, and vertices and use indices within the data types for triangles and edges. 
-
 How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: https://www.researchgate.net/post/How_can_I_perform_Delaunay_Triangulation_algorithm_in_C [accessed May 19, 2017].
  
 */
@@ -49,221 +44,83 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
     public List<Vector3> innerPoints = new List<Vector3>();
 
     public List<Geometry.Triangle> triangles = new List<Geometry.Triangle>();
-    public List<Geometry.Triangle> subTriangles = new List<Geometry.Triangle>();
 
-    public List<Geometry.Circle> circumCircleList = new List<Geometry.Circle>();
-
-    Geometry.Line fromPointToRight = new Geometry.Line();
-    Geometry.Circle testCircumCircle = new Geometry.Circle();
-
-    Vector3[] intersectionPoints = new Vector3[3];
-    public Geometry.Line[] testLines = new Geometry.Line[3];
-
-
-    int circleIndex = 0;
+    //public List<Geometry.Triangle> subTriangles = new List<Geometry.Triangle>();
+    //public List<Geometry.Circle> circumCircleList = new List<Geometry.Circle>();        
     bool stopFlag = false;
 
-    // Use this for initialization
+
+
+    //UNITY FUNCTIONS    
     void Start()
     {
-        //GenerateTestPoints();
-        GeneratePoints();
+        GenerateTestPoints();
+        //GeneratePoints();
         Sort(ref allPoints);
         convexHullPoints = GenerateConvexHull(allPoints);
         GetInnerPoints();
         Triangulate();
 
-        testCircumCircle = CalculateCircumcircle(triangles[0]);
+        // testCircumCircle = CalculateCircumcircle(triangles[0]);
 
     }
-
-    // Update is called once per frame
     void Update()
     {
 
         DrawConvexHull();
         DrawTriangles();
-        Debug.DrawLine(fromPointToRight.start, fromPointToRight.end, Color.cyan);
+        //Debug.DrawLine(fromPointToRight.start, fromPointToRight.end, Color.cyan);
 
-        Vector3 midPoint = CalculateMidpoint(triangles[circleIndex].lines[0]);
-        Vector3 temp = midPoint - triangles[circleIndex].lines[0].start;
-        Vector3 bisector = new Vector3();
-        bisector.x = -temp.z;
-        bisector.y = 0.0f;
-        bisector.z = temp.x;
+        //Vector3 midPoint = CalculateMidpoint(triangles[circleIndex].lines[0]);
+        //Vector3 temp = midPoint - triangles[circleIndex].lines[0].start;
+        //Vector3 bisector = new Vector3();
+        //bisector.x = -temp.z;
+        //bisector.y = 0.0f;
+        //bisector.z = temp.x;
 
-        Geometry.Line lineA = new Geometry.Line(midPoint, bisector + midPoint);
+        //Geometry.Line lineA = new Geometry.Line(midPoint, bisector + midPoint);
 
-        Debug.DrawLine(lineA.start, lineA.end, Color.green);
+        //Debug.DrawLine(lineA.start, lineA.end, Color.green);
+        //if (Input.GetKeyDown(KeyCode.Space))
+        //{
+        //    Debug.Log("Yo");
+        //    debugIndex++;
+        //    if (debugIndex >= triangles.Count)
+        //    {
+        //        debugIndex = 0;
+        //    }
+        //}
+    }
 
-        if (Input.GetKeyDown(KeyCode.Space))
+    //POINT GENERATION
+    public void GeneratePoints()
+    {
+        float y = 0.0f;
+        for (int index = 0; index < 10; index++)
         {
-            Debug.Log("Yo");
-            circleIndex++;
-            if (circleIndex >= circumCircleList.Count)
-            {
-                circleIndex = 0;
-            }
+            float randx = Random.Range(0, 100);
+            float randz = Random.Range(0, 100);
+
+            allPoints.Add(new Vector3(randx, y, randz));
         }
     }
-
-    void OnDrawGizmosSelected()
+    public void GenerateTestPoints()
     {
-        Handles.color = Color.cyan;
-        Handles.DrawWireDisc(circumCircleList[circleIndex].center, Vector3.up, circumCircleList[circleIndex].radius);
+        //NEW TEST CONDITION
+        allPoints.Add(new Vector3(0, 0, 0));
+        allPoints.Add(new Vector3(-6, 0, 8));
+        allPoints.Add(new Vector3(-8, 0, 3));
+
+        allPoints.Add(new Vector3(-6, 0, 4));
+        allPoints.Add(new Vector3(-2, 0, 7));
+        allPoints.Add(new Vector3(-1, 0, 4));
+
+        allPoints.Add(new Vector3(1, 0, 4));
+        allPoints.Add(new Vector3(0, 0, 9));
+        allPoints.Add(new Vector3(4, 0, 5));
     }
 
-    void Triangulate()
-    {
-        FirstTriangulatePass();
-        SubDivideTriangles();
-
-        for (int i = 0; i < triangles.Count; i++)
-        {
-            circumCircleList.Add(CalculateCircumcircle(triangles[i]));
-        }
-
-    }
-    void FirstTriangulatePass()
-    {
-        for (int i = 1; i < convexHullPoints.Count - 2; i++)
-        {
-            triangles.Add(new Geometry.Triangle(convexHullPoints[0], convexHullPoints[i], convexHullPoints[i + 1]));
-        }
-        triangles.Add(new Geometry.Triangle(convexHullPoints[0], convexHullPoints[convexHullPoints.Count - 2], convexHullPoints[convexHullPoints.Count - 1]));
-    }
-    void SubDivideTriangles()
-    {
-        bool triangleFound = false;
-        for (int i = 0; i < innerPoints.Count; i++)
-        {
-            for (int j = 0; j < triangles.Count; j++)
-            {
-                triangleFound = InsideOutsideCheck(triangles[j], innerPoints[i]);
-
-                if (triangleFound)
-                {
-                    //Need to subdivide this triangle by creating a new triangle by drawing a line from the current inner point to all 3 vertices of the current triangle
-                    //That means:
-                    //Creating 3 new lines from the current point to points A, B and C of the current triangle
-                    //Keep track of these lines separately.  PointToA, PointToB and PointToC
-                    //Construct 3 new Triangles from these new lines and the lines of the current triangle (subdivisions):
-                    //Delete the current Triangle from the list and add the 3 new triangles to the list.
-                    int x = 5;
-                    int y = x + 5;
-                    Geometry.Triangle temp = triangles[j];
-                    triangles.Add(new Geometry.Triangle(innerPoints[i], temp.pointA, temp.pointB));
-                    triangles.Add(new Geometry.Triangle(innerPoints[i], temp.pointB, temp.pointC));
-                    triangles.Add(new Geometry.Triangle(innerPoints[i], temp.pointC, temp.pointA));
-                    triangles.RemoveAt(j);
-
-                    break;
-                }
-                if (triangleFound)
-                {
-                    break;
-                }
-            }
-        }
-    }
-
-    public Vector3 CalculateMidpoint(Geometry.Line line)
-    {
-        float x = (line.end.x + line.start.x) / 2.0f;
-        float y = 0;
-        float z = (line.end.z + line.start.z) / 2.0f;
-        Vector3 midpoint = new Vector3(x, y, z);
-
-        return midpoint;
-    }
-    public Vector3 FindIntersection(Geometry.Line A, Geometry.Line B)
-    {
-        float A1 = A.end.z - A.start.z;
-        float B1 = A.start.x - A.end.x;
-        float C1 = A1 * A.start.x + B1 * A.start.z;
-
-        float A2 = B.end.z - B.start.z;
-        float B2 = B.start.x - B.end.x;
-        float C2 = A2 * B.start.x + B2 * B.start.z;
-
-        float det = A1 * B2 - A2 * B1;
-        if (det == 0)
-        {
-            return Vector3.up;
-        }
-        else
-        {
-            float x = (B2 * C1 - B1 * C2) / det;
-            float z = (A1 * C2 - A2 * C1) / det;
-            return new Vector3(x, 0, z);
-        }
-    }
-    public Geometry.Circle CalculateCircumcircle(Geometry.Triangle triangle)
-    {
-        Vector3[] midpoints = new Vector3[3];
-        Vector3[] bisectors = new Vector3[3];
-
-        Geometry.Line[] edges = new Geometry.Line[3];
-
-        for (int i = 0; i < 3; i++)
-        {
-            midpoints[i] = CalculateMidpoint(triangle.lines[i]);
-
-            Vector3 temp = midpoints[i] - triangle.lines[i].start;
-
-            bisectors[i].x = -temp.z;
-            bisectors[i].y = 0.0f;
-            bisectors[i].z = temp.x;
-        }
-
-
-        edges[0] = new Geometry.Line(midpoints[0], bisectors[0] + midpoints[0]);
-        edges[1] = new Geometry.Line(midpoints[1], bisectors[1] + midpoints[1]);
-        edges[2] = new Geometry.Line(midpoints[2], bisectors[2] + midpoints[2]);
-
-        testLines[0] = edges[0];
-        testLines[1] = edges[1];
-        testLines[2] = edges[2];
-
-        intersectionPoints[0] = FindIntersection(edges[0], edges[1]);
-        intersectionPoints[1] = FindIntersection(edges[1], edges[2]);
-        intersectionPoints[2] = FindIntersection(edges[2], edges[0]);
-        bool isCenter = (intersectionPoints[0] == intersectionPoints[1] && intersectionPoints[1] == intersectionPoints[2]);
-
-        Vector3 vertexPosition = edges[0].start;
-
-
-        Vector3 circlePosition = intersectionPoints[0];
-        float distanceA = Vector3.Distance(triangle.pointA, circlePosition);
-        float distanceB = Vector3.Distance(triangle.pointB, circlePosition);
-        float distanceC = Vector3.Distance(triangle.pointC, circlePosition);
-
-        bool equidistance = (distanceA == distanceB && distanceB == distanceC);
-
-
-        //WE HAVE MIDPOINTS!
-        //WE HAVE BISECTORS!
-        //WE HAVE LINES!
-        //WE HAVE INTERSECTION POINTS (POSITION)
-
-
-        //Radius is wrong....
-        float maxDistance = Mathf.Max(distanceA, distanceB, distanceC);
-        //float cirlceRadius = Vector3.Distance(vertexPosition, circlePosition);
-
-
-
-        return new Geometry.Circle(circlePosition, maxDistance);
-    }
-
-    public void CreateXAndYPoints()
-    {
-        GameObject[] rooms = GameObject.FindGameObjectsWithTag("Room");
-
-        Debug.Log("Rooms: " + rooms.Length);
-
-        //Grab Position data for each room and and throw it into a list
-    }
+    //POINT SORTING
     public void SortXPoints()
     {
         //Sort all points by x value
@@ -290,81 +147,21 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         SortXPoints();
         SortYPoints();
     }
-
-    //public void RunTriangulator()
-    //{
-    //    SortPoints();
-    //    Triangulate();
-    //}
-
-    //CONVEX HULL CODE STARTS HERE
-
-    public void GeneratePoints()
+    public void SortByAngle(ref List<Vector3> points)
     {
-        float y = 0.0f;
-        for (int index = 0; index < 10; index++)
-        {
-            float randx = Random.Range(0, 100);
-            float randz = Random.Range(0, 100);
-
-            allPoints.Add(new Vector3(randx, y, randz));
-        }
+        //Find Angle based on initial point and Z Axis
+        var startPoint = points[0];
+        AngleComparer comparer = new AngleComparer(startPoint);
+        var zAxis = -Vector3.forward;
+        points.Sort(1, points.Count - 1, comparer);
     }
-    public void GenerateTestPoints()
+    public void Sort(ref List<Vector3> points)
     {
-        //allPoints.Add(new Vector3(34, 0, 0));
-        //allPoints.Add(new Vector3(97, 0, 15));
-        //allPoints.Add(new Vector3(96, 0, 86));
-        //allPoints.Add(new Vector3(84, 0, 23));
-        //allPoints.Add(new Vector3(46, 0, 0));
-        //allPoints.Add(new Vector3(97, 0, 15));
-        //allPoints.Add(new Vector3(84, 0, 23));
-        //allPoints.Add(new Vector3(96, 0, 86));
-        //allPoints.Add(new Vector3(62, 0, 54));
-        //allPoints.Add(new Vector3(42, 0, 98));
-        //allPoints.Add(new Vector3(33, 0, 44));
-        //allPoints.Add(new Vector3(6, 0, 82));
-        //allPoints.Add(new Vector3(0, 0, 56));
-        //allPoints.Add(new Vector3(8, 0, 36));
-        //allPoints.Add(new Vector3(21, 0, 16));
-        //allPoints.Add(new Vector3(34, 0, 0));
-
-
-        //NEW TEST CONDITION
-        allPoints.Add(new Vector3(72, 0, 6));
-        allPoints.Add(new Vector3(97, 0, 23));
-        allPoints.Add(new Vector3(99, 0, 83));
-        allPoints.Add(new Vector3(76, 0, 34));
-        allPoints.Add(new Vector3(52, 0, 78));
-        allPoints.Add(new Vector3(19, 0, 88));
-        allPoints.Add(new Vector3(24, 0, 27));
-
-        //Problem Triangle!
-        //allPoints.Add(new Vector3(72, 0, 6));
-        //allPoints.Add(new Vector3(99, 0, 83));
-        //allPoints.Add(new Vector3(76, 0, 34));
-        //allPoints.Add(new Vector3(52, 0, 78));
+        points.Sort((a, b) => a.z.CompareTo(b.z));
+        SortByAngle(ref points);
     }
 
-    void OnDrawGizmos()
-    {
-        Gizmos.color = Color.blue;
-        Gizmos.DrawSphere(allPoints[0], 0.5f);
-        Gizmos.color = Color.red;
-        for (int i = 1; i < allPoints.Count; i++)
-        {
-            Gizmos.DrawSphere(allPoints[i], 0.5f);
-
-        }
-        Gizmos.color = Color.green;
-
-        Gizmos.DrawCube(circumCircleList[circleIndex].center, new Vector3(1, 1, 1));
-
-
-
-
-
-    }
+    //DRAW FUNCTIONS
     public void DrawConvexHull()
     {
         Color color = Color.green;
@@ -387,29 +184,29 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
             Debug.DrawLine(triangles[i].pointB, triangles[i].pointC, color);
             Debug.DrawLine(triangles[i].pointC, triangles[i].pointA, color);
         }
-
-        for (int i = 0; i < subTriangles.Count; i++)
+    }
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.blue;
+        Gizmos.DrawSphere(allPoints[0], 0.5f);
+        Gizmos.color = Color.red;
+        for (int i = 1; i < allPoints.Count; i++)
         {
-            Debug.DrawLine(subTriangles[i].pointA, subTriangles[i].pointB, color);
-            Debug.DrawLine(subTriangles[i].pointB, subTriangles[i].pointC, color);
-            Debug.DrawLine(subTriangles[i].pointC, subTriangles[i].pointA, color);
+            Gizmos.DrawSphere(allPoints[i], 0.5f);
+
+        }
+        Gizmos.color = Color.green;
+    }
+    void OnDrawGizmosSelected()
+    {
+        Handles.color = Color.cyan;
+        for (int i = 0; i < triangles.Count; i++)
+        {
+            Handles.DrawWireDisc(triangles[i].circumCircle.center, Vector3.up, triangles[i].circumCircle.radius);
         }
     }
 
-    public void SortByAngle(ref List<Vector3> points)
-    {
-        //Find Angle based on initial point and Z Axis
-        var startPoint = points[0];
-        AngleComparer comparer = new AngleComparer(startPoint);
-        var zAxis = -Vector3.forward;
-        points.Sort(1, points.Count - 1, comparer);
-    }
-    public void Sort(ref List<Vector3> points)
-    {
-        points.Sort((a, b) => a.z.CompareTo(b.z));
-        SortByAngle(ref points);
-    }
-
+    //CONVEX HULL GENERATION & HELPER FUNCTIONS
     public List<Vector3> GenerateConvexHull(List<Vector3> points)
     {
         //Start Conditions:
@@ -473,7 +270,6 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
             }
         }
     }
-
     float LeftRightCheck(Vector3 pointA, Vector3 pointB, Vector3 queryPoint)
     {
         float ret = 0;
@@ -484,6 +280,152 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
               (queryPoint.x - pointA.x));       //AQx
 
         return ret;
+    }
+
+    //TRIANGULATION & HELPER FUNCTIONS
+    void Triangulate()
+    {
+        FirstTriangulatePass();
+        SubDivideTriangles();
+
+        //for (int i = 0; i < triangles.Count; i++)
+        //{
+        //    circumCircleList.Add(Geometry.CalculateCircumcircle(triangles[i]));
+        //}
+
+        int triCount = triangles.Count;
+
+        while (true)
+        {
+            int pointCount = 0;
+            for (int i = 0; i < triCount; i++)
+            {
+                Debug.Log("Triangle " + i);
+                pointCount = Mathf.Max(DelaunayPass(triangles[i], triangles[i].circumCircle), pointCount);
+                //pointCount = Mathf.Min(pointCount, DelaunayPass(triangles[i], triangles[i].circumCircle));
+            }
+            if (pointCount <= 3)
+            {
+                return;
+            }
+        }
+
+
+    }
+    void FirstTriangulatePass()
+    {
+        for (int i = 1; i < convexHullPoints.Count - 2; i++)
+        {
+            triangles.Add(new Geometry.Triangle(convexHullPoints[0], convexHullPoints[i], convexHullPoints[i + 1]));
+        }
+        triangles.Add(new Geometry.Triangle(convexHullPoints[0], convexHullPoints[convexHullPoints.Count - 2], convexHullPoints[convexHullPoints.Count - 1]));
+    }
+    void SubDivideTriangles()
+    {
+        bool triangleFound = false;
+        for (int i = 0; i < innerPoints.Count; i++)
+        {
+            for (int j = 0; j < triangles.Count; j++)
+            {
+                triangleFound = InsideOutsideCheck(triangles[j], innerPoints[i]);
+
+                if (triangleFound)
+                {
+                    //Need to subdivide this triangle by creating a new triangle by drawing a line from the current inner point to all 3 vertices of the current triangle
+                    //That means:
+                    //Creating 3 new lines from the current point to points A, B and C of the current triangle
+                    //Keep track of these lines separately.  PointToA, PointToB and PointToC
+                    //Construct 3 new Triangles from these new lines and the lines of the current triangle (subdivisions):
+                    //Delete the current Triangle from the list and add the 3 new triangles to the list.
+                    int x = 5;
+                    int y = x + 5;
+                    Geometry.Triangle temp = triangles[j];
+                    triangles.Add(new Geometry.Triangle(innerPoints[i], temp.pointA, temp.pointB));
+                    triangles.Add(new Geometry.Triangle(innerPoints[i], temp.pointB, temp.pointC));
+                    triangles.Add(new Geometry.Triangle(innerPoints[i], temp.pointC, temp.pointA));
+                    triangles.RemoveAt(j);
+
+                    break;
+                }
+                if (triangleFound)
+                {
+                    break;
+                }
+            }
+        }
+    }
+    public int DelaunayPass(Geometry.Triangle triangle, Geometry.Circle circle)
+    {
+
+        int numPoints = 0;
+        List<Vector3> pointsInCircle = new List<Vector3>();
+        for (int index = 0; index < allPoints.Count; index++)
+        {
+            if (Geometry.PointInsideCircle(circle, allPoints[index]))
+            {
+                pointsInCircle.Add(allPoints[index]);
+            }
+        }
+
+        numPoints = pointsInCircle.Count;
+        int count = triangles.Count;
+
+        if (numPoints >= 4)
+        {
+            List<Geometry.Triangle> trianglesWithPoint = new List<Geometry.Triangle>();
+            for (int pointIndex = 0; pointIndex < pointsInCircle.Count; pointIndex++)
+            {
+                for (int triangleIndex = 0; triangleIndex < count; triangleIndex++)
+                {
+                    if (triangles[triangleIndex].pointA == pointsInCircle[pointIndex] ||
+                       triangles[triangleIndex].pointB == pointsInCircle[pointIndex] ||
+                       triangles[triangleIndex].pointC == pointsInCircle[pointIndex])
+                    {
+                        trianglesWithPoint.Add(triangles[triangleIndex]);
+                    }
+                }
+                for (int k = 0; k < trianglesWithPoint.Count; k++)
+                {
+                    if (Adjacent(triangle, trianglesWithPoint[k]))
+                    {
+                        //find the uncommon points
+                        Vector3[] edgeFlipPoints = new Vector3[4];
+                        Vector3 uncommonPoint = Geometry.FindUncommonPoint(triangle, trianglesWithPoint[k]);
+
+                        edgeFlipPoints[0] = uncommonPoint;
+                        List<Vector3> pointsFormingAngle = Geometry.FindPointsFormingAngle(triangle, uncommonPoint);
+                        edgeFlipPoints[1] = pointsInCircle[0];
+                        edgeFlipPoints[2] = pointsInCircle[2];
+                        float theta1 = Mathf.Ceil(180 - Geometry.CalculateAngleInDegs(pointsFormingAngle[0], pointsFormingAngle[1], pointsFormingAngle[2]));
+
+                        uncommonPoint = Geometry.FindUncommonPoint(trianglesWithPoint[k], triangle);
+                        edgeFlipPoints[3] = uncommonPoint;
+                        pointsFormingAngle.Clear();
+                        pointsFormingAngle = Geometry.FindPointsFormingAngle(trianglesWithPoint[k], uncommonPoint);
+
+                        float theta2 = Mathf.Ceil(180 - Geometry.CalculateAngleInDegs(pointsFormingAngle[0], pointsFormingAngle[1], pointsFormingAngle[2]));
+
+                        //check if the sum of the angles made of their uncommon edges is greater than 180 degrees
+                        //if angle > 180 flip their edges:
+                        if (theta1 + theta2 >= 180)
+                        {
+                            //FLIP THAT MAWFUCKIN EDGE!
+                            //Triangles P1P2P3 and P2P4P3 when flipped form new triangles  P1P2P4 and P1P4P3
+                            triangles.Add(new Geometry.Triangle(edgeFlipPoints[0], edgeFlipPoints[1], edgeFlipPoints[3]));
+                            triangles.Add(new Geometry.Triangle(edgeFlipPoints[0], edgeFlipPoints[3], edgeFlipPoints[2]));
+
+                            triangles.Remove(triangle);
+                            triangles.Remove(trianglesWithPoint[k]);
+
+                            return numPoints;
+                        }
+                    }
+                }
+                //trianglesWithPoint.Clear();
+            }
+        }
+        stopFlag = false;
+        return numPoints;
     }
     public bool InsideOutsideCheck(Geometry.Triangle triangle, Vector3 point)
     {
@@ -511,127 +453,70 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
             return false;
         }
     }
-
-    public void EdgeFlip(Geometry.Circle circle)
-    {
-
-        //PSUEDO
-        // Find all the points inside the circumCircle
-        // For each of these points:
-        // Find all triangles that include the point
-        // For each of these triangles
-        // Check adjacency
-        // if adjacent:
-        // Check the sum of the angles formed by the uncommon edges
-        // if angle > 180
-        // edge flip:
-
-        //NOTE: for edge flip to work points must be in correct order:
-        //Order: P1 = The uncommon point of the circumcircle's triangle
-        //       P2 = going clockwise - the first point in the common edge
-        //       P3 = continuing clockwise - the second point in the common edge
-        //       P4 = the uncommon point in the adjacent triangle
-
-        //Using these 4 points we can flip an edge to create two new triangles:
-
-        // Right now the two triangles are: 
-        // 1) P1P2P3
-        // 2) P2P4P3
-
-        // Flipping the edge means deleting adding two new triangles to the list and deleting the original 2 triangles from the list.
-        // The two new triangles are: 
-        // 1)P1P2P4
-        // 2)P1P4P3
-
-        //Add these two new triangles (P1P2P4 and P1P4P3) to the end of the list and remove the two we started with (P1P2P3 and P2P4P3)
-
-
-        //NOTE: when adding and removing triangles, take care to ensure that the indices of the cirumcircles still reflect the indices of the triangle list 
-        //alternatively you can just recalculate circumcircles if you don't care about efficiency.  
-        //yet another option would be to create a data structure containing triangles and their circles to guarantee they have the same index.
-        
-        List<Vector3> pointsInCircle = new List<Vector3>();
-        for (int i = 0; i < allPoints.Count; i++)
-        {
-            if (PointInsideCircle(circle, allPoints[i]))
-            {
-                pointsInCircle.Add(allPoints[i]);
-            }
-        }
-
-        for(int i = 0; i < pointsInCircle.Count; i++)
-        {
-            List<Geometry.Triangle> pointTriangles = GetAPointsTriangles(pointsInCircle[i]);
-
-
-        }
-
-    }
-
-
-    public bool PointInsideCircle(Geometry.Circle circle, Vector3 point)
-    {
-        float distance = Vector3.Distance(point, circle.center);
-
-        return distance < circle.radius;
-    }
-
-
     public bool Adjacent(Geometry.Triangle A, Geometry.Triangle B)
     {
+
         int count = 0;
 
-        for (int i = 0; i < 3; i++)
+        bool AA = A.pointA == B.pointA || A.pointA == B.pointB || A.pointA == B.pointC;
+        bool AB = A.pointB == B.pointA || A.pointB == B.pointB || A.pointB == B.pointC;
+        bool AC = A.pointC == B.pointA || A.pointC == B.pointB || A.pointC == B.pointC;
+
+        if (AA)
         {
-            if (A.lines[0] == B.lines[i] || A.lines[1] == B.lines[i] || A.lines[2] == B.lines[i])
-            {
-                count++;
-            }
+            count++;
         }
+        if (AB)
+        {
+            count++;
+        }
+        if (AC)
+        {
+            count++;
+        }
+
         return count == 2;
     }
 
 
-    //Given a circle find all the points that fall within that circle and return 
-    public List<Vector3> GetPointsInCircumCircle(Geometry.Circle circumCircle)
-    {
-        List<Vector3> insidePoints = new List<Vector3>();
-
-        for (int i = 0; i < allPoints.Count; i++)
-        {
-            if (PointInsideCircle(circumCircle, allPoints[i]))
-            {
-                insidePoints.Add(allPoints[i]);
-            }
-        }
-        return insidePoints;
-    }
 
 
-    //Given a point this function will find all the triangles that point is included in and return a list containing those triangles
-    public List<Geometry.Triangle> GetAPointsTriangles(Vector3 point)
-    {
-        List<Geometry.Triangle> trianglesWithPoint = new List<Geometry.Triangle>();
-
-        for(int i = 0; i < triangles.Count; i++)
-        {
-            for(int j = 0; j < 3; j++)
-            {
-                if(triangles[i].pointA == point || triangles[i].pointB == point || triangles[i].pointC == point)
-                {
-                    trianglesWithPoint.Add(triangles[i]);
-                }
-            }
-        }
-
-        return trianglesWithPoint;
-    }
 
 
-    //Grab all points inside circumcircle
 
-    //Test each point for adjacency
-    //if adjacent flip edge
+
+
+
+
+    //PSEUDO
+
+    //Go through each triangle and do the following: (triangleA)
+    //First, get the circumcircle of the triangleA 
+    //Next, get all the points inside the circumcircle
+    //For each of these points:
+    //Get all the the triangles that include the current point
+    //For each of these triangles: (triangleB)
+    //Test triangleA and triangleB for adjacency
+    //if they are adjacent
+    //check if the sum of the angles made of their uncommon edges is greater than 180 degrees
+    //if angle > 180 flip their edges:
+
+    //Edge Flip Algorithm
+    //Needs 4 points:
+    //First point (P1) is the point in triangleA that is uncommon with triangleB
+    //Second point(P2) is the first point (traveling clockwise from P1) on the common edge
+    //Third point (P3) is the second point (traveling clockwise from P1) on the common edge
+    //Fourth point(P4) is the point in triangleB that is unccomon with triangleA
+
+
+    //Finding these points is fairly trivial (a simple contains function will return true or false)
+
+    //MOST IMPORTANT PART!
+    //Triangles P1P2P3 and P2P4P3 when flipped form new triangles  P1P2P4 and P1P4P3
+
+
+    //alternatively, simply find which point are uncommon, delete both triangles, and create two new triangles from these two points and the third point being 
+    //each of the other points no longer part of the common edge.
 
 }
 
@@ -655,32 +540,7 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
     3) calculate where these 3 normals intersect (this gives you the midpoint)
     4) The distance from all 3 vertices to the intersesction of their midpoints should be equidistant
         - this distance is the radius of the circle.
-
     5)Now we have a centre and a radius.  Enough for our circle. :)
      
      
 */
-
-
-
-
-
-//GARBAGE CODE
-
-
-//public bool InsideOutsideCheck(Geometry.Triangle triangle, Vector3 point)
-//{
-//    Vector3 rightVector = Vector3.right * 100;
-//    Geometry.Line pointToRight = new Geometry.Line(point, point + rightVector);
-//    fromPointToRight = pointToRight;
-//    GetNumIntersections(triangle, pointToRight);
-
-//    if (intersectionCount % 2 == 0)
-//    {
-//        return true;
-//    }
-//    else
-//    {
-//        return true;
-//    }
-//}
