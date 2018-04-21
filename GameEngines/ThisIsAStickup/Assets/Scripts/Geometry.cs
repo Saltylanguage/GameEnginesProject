@@ -36,17 +36,31 @@ public class Geometry : MonoBehaviour {
 
 
 
-    public class Triangle
+    public struct Triangle
     {
+
+        public void CalculateLines()
+        {
+
+        }
+
         public Triangle(Vector3 a, Vector3 b, Vector3 c)
         {
             pointA = a;
             pointB = b;
             pointC = c;
-            CalculateLines();
 
-            minXY.x = Mathf.Min(Mathf.Min(pointA.x, pointB.x), pointC.x);
-            minXY.y = Mathf.Min(Mathf.Min(pointA.z, pointB.z), pointC.z);
+            AB = new Line(pointA, pointB);
+            BC = new Line(pointB, pointC);
+            CA = new Line(pointC, pointA);
+
+            lines = new Line[4];
+            lines[0] = AB;
+            lines[1] = BC;
+            lines[2] = CA;
+
+            numPointsInCircle = 0;
+            circumCircle = new Geometry.Circle();
 
             circumCircle = CalculateCircumcircle(this);
         }
@@ -55,27 +69,16 @@ public class Geometry : MonoBehaviour {
         public Vector3 pointB;
         public Vector3 pointC;
 
-        public Line[] lines = new Line[3];
+        public Line[] lines;
 
         public Line AB;
         public Line BC;
         public Line CA;
 
-        public Vector2 minXY;
-        public Vector2 maxXY;
+        public Geometry.Circle circumCircle;
+        public int numPointsInCircle;
 
-        public Geometry.Circle circumCircle = new Geometry.Circle();
 
-        public void CalculateLines()
-        {
-            AB = new Line(pointA, pointB);
-            BC = new Line(pointB, pointC);
-            CA = new Line(pointC, pointA);
-
-            lines[0] = AB;
-            lines[1] = BC;
-            lines[2] = CA;
-        }
     }
 
     public class Circle
