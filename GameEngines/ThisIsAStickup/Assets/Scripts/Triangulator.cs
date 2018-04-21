@@ -55,8 +55,8 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
     //UNITY FUNCTIONS    
     void Start()
     {
-        //GenerateTestPoints();
-        GeneratePoints();
+        GenerateTestPoints();
+        //GeneratePoints();
         Sort(ref allPoints);
         convexHullPoints = GenerateConvexHull(allPoints);
         GetInnerPoints();
@@ -414,10 +414,10 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
                             //FLIP THAT MAWFUCKIN EDGE!
                             //Triangles P1P2P3 and P2P4P3 when flipped form new triangles  P1P2P4 and P1P4P3
 
-                            int removeIndex = FindTriangleIndex(triangle);
-                            triangles.RemoveAt(removeIndex);
-                            removeIndex = FindTriangleIndex(trianglesWithPoint[k]);
-                            triangles.RemoveAt(removeIndex);
+                            //int removeIndex = FindTriangleIndex(triangle);
+                            //triangles.RemoveAt(removeIndex);
+                            //removeIndex = FindTriangleIndex(trianglesWithPoint[k]);
+                            //triangles.RemoveAt(removeIndex);
 
                             triangles.Add(new Geometry.Triangle(edgeFlipPoints[0], edgeFlipPoints[1], edgeFlipPoints[3]));
                             triangles.Add(new Geometry.Triangle(edgeFlipPoints[0], edgeFlipPoints[3], edgeFlipPoints[2]));
