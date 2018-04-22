@@ -36,7 +36,7 @@ public class Geometry : MonoBehaviour {
 
 
 
-    public struct Triangle
+    public class Triangle
     {
 
         public void CalculateLines()
@@ -63,6 +63,8 @@ public class Geometry : MonoBehaviour {
             circumCircle = new Geometry.Circle();
 
             circumCircle = CalculateCircumcircle(this);
+
+
         }
 
         public Vector3 pointA;
