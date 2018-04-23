@@ -46,14 +46,22 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
 
     public List<Geometry.Triangle> triangles = new List<Geometry.Triangle>();
 
-    int debugIndex;
+    public List<Geometry.Line> minimumSpanningTree = new List<Geometry.Line>();
+
+    public int NumberOfPoints = 100;
+
+    public int debugIndex;
     List<Vector2> indexList = new List<Vector2>();
+
+    public bool mstMode = false;
+    public bool convexMode = false;
+
 
     //UNITY FUNCTIONS    
     void Start()
     {
         GenerateTestPoints();
-        // GeneratePoints();
+        //GeneratePoints();
         Sort(ref allPoints);
         convexHullPoints = GenerateConvexHull(allPoints);
         GetInnerPoints();
@@ -61,16 +69,18 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
     }
     void Update()
     {
-
-        DrawConvexHull();
-        DrawTriangles();
-
-
-        for (int i = 0; i < triangles.Count; i++)
+        if (mstMode)
         {
-            Debug.Log("Numpoints =  " + triangles[i].numPointsInCircle);
+            DrawLines(minimumSpanningTree, Color.red);
         }
-
+        else if (!convexMode)
+        {
+            DrawTriangles();
+        }
+        else
+        {
+            DrawConvexHull();
+        }
         if (Input.GetKeyDown(KeyCode.Space))
         {
             debugIndex++;
@@ -85,7 +95,7 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
     public void GeneratePoints()
     {
         float y = 0.0f;
-        for (int index = 0; index < 10; index++)
+        for (int index = 0; index < NumberOfPoints; index++)
         {
             float randx = Random.Range(0, 100);
             float randz = Random.Range(0, 100);
@@ -165,7 +175,7 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         }
         Debug.DrawLine(convexHullPoints[convexHullPoints.Count - 1], convexHullPoints[0], Color.green);
     }
-    void DrawTriangles()
+    public void DrawTriangles()
     {
         Color color = Color.yellow;
         for (int i = 0; i < triangles.Count; i++)
@@ -281,14 +291,37 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
     }
 
     //TRIANGULATION & HELPER FUNCTIONS
-    void Triangulate()
+    public void Triangulate()
     {
         FirstTriangulatePass();
         SubDivideTriangles();
 
         int pointCount = 0;
 
-        pointCount = RunPassOnTriangles(triangles.Count, pointCount);
+
+        //do
+        //{
+        //    pointCount = 0;
+        //    pointCount = RunPassOnTriangles(triangles.Count, pointCount);
+        //} while (pointCount >= 4);
+
+        //List<Geometry.Triangle> copyList = new List<Geometry.Triangle>();
+
+        //for (int i = 0; i < 20; i++)
+        //{
+        //    copyList.Clear();
+        //    for (int j = 0; j < triangles.Count; j++)
+        //    {
+        //        copyList.Add(new Geometry.Triangle(triangles[i].pointA, triangles[i].pointB, triangles[i].pointC));
+        //    }
+        //    for (int j = 0; j < copyList.Count; i++)
+        //    {
+        //        triangles[i].numPointsInCircle = Mathf.Max(DelaunayPass(copyList[i]), pointCount);
+        //    }
+
+        //}
+
+        //pointCount = RunPassOnTriangles(triangles.Count, pointCount);
     }
     void FirstTriangulatePass()
     {
@@ -335,18 +368,17 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
 
     public int RunPassOnTriangles(int triCount, int pointCount)
     {
-
         for (int i = 0; i < triCount; i++)
         {
-
             pointCount = Mathf.Max(DelaunayPass(triangles[i]), pointCount);
-            //pointCount = Mathf.Min(pointCount, DelaunayPass(triangles[i], triangles[i].circumCircle));
         }
+        Debug.Log("POINT COUNT = " + pointCount);
         return pointCount;
     }
+
     public int DelaunayPass(Geometry.Triangle triangle)
     {
-        Debug.Log("Triangle: " + triangle.pointA + " " + triangle.pointB + " " + triangle.pointC);
+        // Debug.Log("Triangle: " + triangle.pointA + " " + triangle.pointB + " " + triangle.pointC);
         int numPoints = 0;
         List<Vector3> pointsInCircle = new List<Vector3>();
 
@@ -359,11 +391,10 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
             }
         }
 
-        Debug.Log("Numpoints =  " + triangle.numPointsInCircle);
+        //  Debug.Log("Numpoints =  " + triangle.numPointsInCircle);
 
         numPoints = pointsInCircle.Count;
-        //triangle.numPointsInCircle = numPoints;
-        //int count = triangles.Count;
+
         if (numPoints >= 4)
         {
             List<Geometry.Triangle> trianglesWithPoint = new List<Geometry.Triangle>();
@@ -377,7 +408,7 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
                     {
                         trianglesWithPoint.Add(triangles[triangleIndex]);
                     }
-                    
+
                 }
                 for (int k = 0; k < trianglesWithPoint.Count; k++)
                 {
@@ -429,9 +460,6 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
                                 }
                             }
 
-                            Debug.Log("Temp1 Numpoints =  " + temp1.numPointsInCircle);
-                            Debug.Log("Temp2 Numpoints =  " + temp2.numPointsInCircle);
-
                             triangles.Add(temp1);
                             triangles.Add(temp2);
 
@@ -446,29 +474,6 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
 
 
         return numPoints;
-    }
-
-    public void FlipIllegalEdges()
-    {
-        //Vector3 uncommon = new Vector3();
-        //for (int i = 0; i < indexList.Count; i++)
-        //{
-        //   uncommon =  Geometry.FindUncommonPoint(triangles[(int)indexList[i].x], triangles[(int)indexList[i].y]);
-        //}
-
-        //Vector3[] flipPoints = new Vector3[4];
-        //flipPoints[0] = uncommon;
-        //List<Vector3> pointsFormingAngle = Geometry.FindPointsFormingAngle(triangle, uncommonPoint);
-        //flipPoints[1] = pointsInCircle[0];
-        //flipPoints[2] = pointsInCircle[2];
-        //float theta1 = Mathf.Ceil(180 - Geometry.CalculateAngleInDegs(pointsFormingAngle[0], pointsFormingAngle[1], pointsFormingAngle[2]));
-
-        //uncommonPoint = Geometry.FindUncommonPoint(trianglesWithPoint[k], triangle);
-        //edgeFlipPoints[3] = uncommonPoint;
-        //pointsFormingAngle.Clear();
-        //pointsFormingAngle = Geometry.FindPointsFormingAngle(trianglesWithPoint[k], uncommonPoint);
-
-        // float theta2 = Mathf.Ceil(180 - Geometry.CalculateAngleInDegs(pointsFormingAngle[0], pointsFormingAngle[1], pointsFormingAngle[2]));
     }
 
     public bool InsideOutsideCheck(Geometry.Triangle triangle, Vector3 point)
@@ -534,12 +539,137 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         return -1;
     }
 
+    public void DrawLines(List<Geometry.Line> lines, Color color)
+    {
+        for (int i = 0; i < lines.Count; i++)
+        {
+            Debug.DrawLine(lines[i].start, lines[i].end, color);
+        }
+    }
 
 
+    public bool ListContainsLine(List<Geometry.Line> list, Geometry.Line line)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (line.start == list[i].start || line.end == list[i].start)
+            {
+                if (line.start == list[i].end || line.end == list[i].end)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public void CalculateMinimumSpanningTree(List<Geometry.Triangle> triangulation)
+    {
+        //Calculating Euclidean Minimum Spanning Tree(EMST)
 
 
+        // 1 - first get a list of all edges in the triangulation
+        List<Geometry.Line> listOfAllLines = new List<Geometry.Line>();
+        for (int i = 0; i < triangulation.Count; i++)
+        {
+            if (!ListContainsLine(listOfAllLines, triangulation[i].AB))
+            {
+                listOfAllLines.Add(triangulation[i].AB);
+            }
+            if (!ListContainsLine(listOfAllLines, triangulation[i].BC))
+            {
+                listOfAllLines.Add(triangulation[i].BC);
+            }
+            if (!ListContainsLine(listOfAllLines, triangulation[i].CA))
+            {
+                listOfAllLines.Add(triangulation[i].CA);
+            }
+        }
+
+        // 2 - sort this list by length
+        listOfAllLines.Sort((a, b) => a.length.CompareTo(b.length));
+
+        // 3 - Creat a list of points to store all points that have already been visited
+        List<Vector3> visitedPoints = new List<Vector3>();
+
+        // 4 - Add the shortest Edge's points to a list of points
+        visitedPoints.Add(listOfAllLines[0].start);
+        visitedPoints.Add(listOfAllLines[0].end);
+
+        minimumSpanningTree.Add(listOfAllLines[0]);
+
+        // 5 - Remove this edge from the list of edges
+        listOfAllLines.RemoveAt(0);
+
+        int pointCount = 0;
+        bool startIncluded = false;
+        bool endIncluded = false;
+
+        // 6 - for every remaining edge:
+        for (int i = 0; i < listOfAllLines.Count; i++)
+        {
+            //     a) check if this edge contains EXACTLY 1 point in the list of points
+            //       *LOGIC: if it contains 1 and only 1 point this means it attaches to our list of edges without being
+            //        redundant and because we sorted by length the first one we visit will automatically be the shortest
 
 
+            //we are NOT guaranteeing that the edge does not close a circuit.
+            for (int j = 0; j < visitedPoints.Count; j++)
+            {
+                startIncluded = false;
+                endIncluded = false;
+                pointCount = 0;
+                if (listOfAllLines[i].start == visitedPoints[j])
+                {
+                    startIncluded = true;
+                    pointCount++;
+                }
+                if (listOfAllLines[i].end == visitedPoints[j])
+                {
+                    endIncluded = true;
+                    pointCount++;
+                }
+
+                if (pointCount == 1)
+                {
+                    if (!(visitedPoints.Contains(listOfAllLines[i].start) && visitedPoints.Contains(listOfAllLines[i].end)))
+                    {
+                        if (startIncluded)
+                        {
+                            visitedPoints.Add(listOfAllLines[i].end);
+                        }
+                        else if (endIncluded)
+                        {
+                            visitedPoints.Add(listOfAllLines[i].start);
+                        }
+
+                        minimumSpanningTree.Add(listOfAllLines[i]);
+                        listOfAllLines.RemoveAt(i);
+                        i = 0;
+                        if (visitedPoints.Count == allPoints.Count)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            if (visitedPoints.Count == allPoints.Count)
+            {
+                break;
+            }
+        }
+
+
+        Debug.Log("Yo");
+
+        /*                        
+         *     b) Once you find the first edge with exactly 1 point in the list of points: 
+         *     Add this edge to list of edges and add the point from this Edge that is not already in the list of points and remove the Edge from the list of edges.
+         *     
+         *    
+         * 7 - Repeat Step 6 until the List of points contains all points.
+         */
+    }
 
 
     //PSEUDO
@@ -598,3 +728,6 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
      
      
 */
+
+
+

@@ -13,7 +13,7 @@ public class ArchitectureGenerator : MonoBehaviour
     public float yOffset = 5.0f;
     public bool isGenerated = false;
 
-    int counter = 0;
+
 
     // Use this for initialization
     void Start()

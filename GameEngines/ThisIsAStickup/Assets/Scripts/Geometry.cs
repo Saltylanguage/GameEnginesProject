@@ -24,6 +24,10 @@ public class Geometry : MonoBehaviour {
             rise = pointA.z - pointB.z;
             run = pointA.x - pointB.x;
             c = (rise * start.x) + (run * end.z);
+
+            float deltaX = pointA.x - pointB.x;
+            float deltay = pointA.z - pointB.z;
+            length = Mathf.Sqrt((deltaX * deltaX) + (deltay * deltay));
         }
 
         public Vector3 start;
@@ -32,6 +36,8 @@ public class Geometry : MonoBehaviour {
         public float rise;
         public float run;
         public float c;
+
+        public float length;
     }
 
 
