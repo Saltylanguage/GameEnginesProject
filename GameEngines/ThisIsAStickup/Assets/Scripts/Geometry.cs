@@ -9,6 +9,36 @@ public class Geometry : MonoBehaviour {
     public static float kRadToDeg = 180 / kPi;
     public static float kDegToRad = kPi / 180;
 
+    public enum CellType
+    {
+        Empty = 0,
+        MajorRoom,
+        MinorRoom,
+        Hallway,
+
+        MAXTYPE
+
+    }
+    public struct Coord
+    {
+        public int x;
+        public int y;
+
+        CellType type;
+
+        public Coord(int _x, int _y)
+        {
+            x = _x;
+            y = _y;
+            type = CellType.Empty;
+        }
+        public Coord(int _x, int _y, CellType _type)
+        {
+            x = _x;
+            y = _y;
+            type = _type;
+        }
+    }
 
     public class Line
     {
@@ -19,7 +49,9 @@ public class Geometry : MonoBehaviour {
         {
 
             start = pointA;
+            start.y = 20;
             end = pointB;
+            end.y = 20;
 
             rise = pointA.z - pointB.z;
             run = pointA.x - pointB.x;

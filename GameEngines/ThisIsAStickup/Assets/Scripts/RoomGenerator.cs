@@ -27,7 +27,7 @@ public class RoomGenerator : MonoBehaviour
     public bool isDone = false;
     public bool done = false;
 
-    ArchitectureGenerator archGen;    
+    ArchitectureGenerator archGen;
     ConvexHullConstructor convexGen;
 
     public static Vector3 GetRandomPoint()
@@ -61,15 +61,17 @@ public class RoomGenerator : MonoBehaviour
         float zSum = 0;
         for (int i = 0; i < numObjects; i++)
         {
-            allRooms[i] = Instantiate(roomTemplate);
-            
+            if (allRooms != null)
+            {
+                allRooms[i] = Instantiate(roomTemplate);
 
-            allRooms[i].transform.localScale = new Vector3(xRange[i], 10, zRange[i]);
-            allRooms[i].transform.position = new Vector3(randomPoints[i].x, 10, randomPoints[i].z);
 
-            xSum += allRooms[i].transform.localScale.x;
-            zSum += allRooms[i].transform.localScale.z;
+                allRooms[i].transform.localScale = new Vector3(xRange[i], 10, zRange[i]);
+                allRooms[i].transform.position = new Vector3(randomPoints[i].x, 10, randomPoints[i].y);
 
+                xSum += allRooms[i].transform.localScale.x;
+                zSum += allRooms[i].transform.localScale.z;
+            }
         }
 
         float xMean = (xSum / numObjects) * 0.75f;
@@ -90,7 +92,7 @@ public class RoomGenerator : MonoBehaviour
         for (int i = 0; i < mainRooms.Count; i++)
         {
             mainRooms[i].GetComponentInChildren<MeshRenderer>().material.color = Color.red;
-            mainRooms[i].transform.position += new Vector3(0, 1f, 0);
+            //mainRooms[i].transform.position += new Vector3(0, 1f, 0);
         }
     }
 
@@ -103,13 +105,21 @@ public class RoomGenerator : MonoBehaviour
 
     void Update()
     {
-        BoxCollider temp;
+       if(Input.GetKeyDown(KeyCode.Space))
+        {
+            SeparateRooms();
+        }
+    }
 
-        done = true;
+
+
+    public bool SeparateRooms()
+    {
+        BoxCollider temp;
         for (int i = 0; i < allRooms.Count; i++)
         {
             temp = allRooms[i].GetComponentInChildren<BoxCollider>();
-            if(temp)
+            if (temp)
             {
                 for (int j = 0; j < allRooms.Count; j++)
                 {
@@ -142,35 +152,48 @@ public class RoomGenerator : MonoBehaviour
                             allRooms[i].transform.position += new Vector3(randomXOffset, 0, randomZOffset);
                             done = false;
                         }
-
+                        SetRoomPositions();
                         separateFlag = false;
                     }
                 }
             }
         }
-
-        if (done && !convexGen.isGenerated)
-        {
-
-            //SetRoomPositions();
-            //convexGen.GeneratePoints(roomPositions);
-            //convexGen.GenerateConvexHull(roomPositions);
-            //archGen.GenerateArchitecture();
-            //Destroy(this.gameObject);
-        }
-
-        //convexGen.DrawConvexHull();
-
+        return true;
     }
 
-    void SetRoomPositions()
+
+    public void SetRoomPositions()
     {
-        for(int i = 0; i < allRooms.Count; i++)
+        for (int i = 0; i < mainRooms.Count; i++)
         {
-            roomPositions.Add(allRooms[i].transform.position);
+            roomPositions.Add(mainRooms[i].transform.position);
         }
     }
 
+
+    public void CreateHallway(Geometry.Line connection)
+    {
+        // 1- first get the midpoint between the two room positions.
+        // 2 -check if this midpoint is within the boundaries of both rooms along either the x or y axis
+        //   a) if in x boundary: draw a vertical line between rooms at the midpoint
+        //   b) if in y boundary: draw a horizontal line between rooms at the midpoint
+        //   c) if in nether boundary: draw a horizontal line from each room's midpoint to it's counterpart's midpoint along 1 axis
+
+    }
+
+
+    public void CreateTiledRoom(int width, int height)
+    {
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+
+
+            }
+        }
+
+    }
 
 }
 

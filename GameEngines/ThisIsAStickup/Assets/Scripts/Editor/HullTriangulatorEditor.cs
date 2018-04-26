@@ -20,7 +20,16 @@ public class HullTriangulatorEditor : Editor
             triangulator.innerPoints.Clear();
             triangulator.triangles.Clear();
 
-            triangulator.GeneratePoints();
+            triangulator.roomGen.roomPositions.Clear();
+            triangulator.roomGen.SetRoomPositions();
+            for (int i = 0; i < triangulator.roomGen.roomPositions.Count; i++)
+            {
+                Vector3 temp = triangulator.roomGen.roomPositions[i];
+                temp.y += 20;
+                triangulator.allPoints.Add(temp);
+            }
+
+            //triangulator.GeneratePoints();
             triangulator.Sort(ref triangulator.allPoints);
             triangulator.convexHullPoints = triangulator.GenerateConvexHull(triangulator.allPoints);
             triangulator.GetInnerPoints();
@@ -33,7 +42,6 @@ public class HullTriangulatorEditor : Editor
                 maxPoints = triangulator.RunPassOnTriangles(triangulator.triangles.Count, maxPoints);
             }
         }
-
 
         if (GUILayout.Button("Clear"))
         {
@@ -49,14 +57,14 @@ public class HullTriangulatorEditor : Editor
             int maxPoints = 0;
             maxPoints = triangulator.RunPassOnTriangles(triangulator.triangles.Count, maxPoints);
         }
-        if (GUILayout.Button("Next Circle"))
-        {
-            triangulator.debugIndex++;
-            if (triangulator.debugIndex >= triangulator.triangles.Count)
-            {
-                triangulator.debugIndex = 0;
-            }
-        }
+        //if (GUILayout.Button("Next Circle"))
+        //{
+        //    triangulator.debugIndex++;
+        //    if (triangulator.debugIndex >= triangulator.triangles.Count)
+        //    {
+        //        triangulator.debugIndex = 0;
+        //    }
+        //}
 
 
 
@@ -69,6 +77,22 @@ public class HullTriangulatorEditor : Editor
                 triangulator.minimumSpanningTree.Clear();
                 triangulator.CalculateMinimumSpanningTree(triangulator.triangles);
             }
+
+            for (int i = 0; i < triangulator.triangles.Count; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    if (!triangulator.minimumSpanningTree.Contains(triangulator.triangles[i].lines[j]))
+                    {
+                        int chance = (int)Random.Range(0, 100);
+                        if (chance > 95)
+                        {
+                            triangulator.minimumSpanningTree.Add(triangulator.triangles[i].lines[j]);
+                        }
+
+                    }
+                }
+            }
         }
 
         if (GUILayout.Button("Convex Hull Mode"))
@@ -77,7 +101,7 @@ public class HullTriangulatorEditor : Editor
             triangulator.mstMode = false;
         }
 
-        if (GUILayout.Button("Normal Mode"))
+        if (GUILayout.Button("Triangulon!!!"))
         {
             triangulator.convexMode = false;
             triangulator.mstMode = false;
