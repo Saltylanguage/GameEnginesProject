@@ -6,16 +6,15 @@ using UnityEditor;
 [CustomEditor(typeof(GridGenerator))]
 public class MapEditor : Editor
 {
-    //bool stopFlag = false;
+
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
-        GridGenerator map = target as GridGenerator;
-        //if (!stopFlag)
-        //{
+        if (!Application.isPlaying)
+        { 
+            GridGenerator map = target as GridGenerator;
             map.CreateGrid();
-            //stopFlag = true;
-       // }
+        }
     }
 }
 
