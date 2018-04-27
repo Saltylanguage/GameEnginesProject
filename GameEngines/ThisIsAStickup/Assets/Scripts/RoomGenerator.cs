@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class RoomGenerator : MonoBehaviour
 {
-    public static float radius = 100;
+    public static float radius = 300;
     public int numObjects = 25;
 
     public float xThreshold;
@@ -105,12 +105,13 @@ public class RoomGenerator : MonoBehaviour
 
     void Update()
     {
-       if(Input.GetKeyDown(KeyCode.Space))
-        {
-            SeparateRooms();
-        }
+        //SeparateRooms();
     }
 
+    private void FixedUpdate()
+    {
+        //SeparateRooms();
+    }
 
 
     public bool SeparateRooms()

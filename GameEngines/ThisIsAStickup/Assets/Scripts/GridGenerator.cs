@@ -20,11 +20,45 @@ public class GridGenerator : MonoBehaviour
     List<Geometry.Coord> allTileCoords;
     Queue<Geometry.Coord> shuffledTileCoords;
 
+    float mRadialForce = 60000.0f; //Newtons
+
     bool isMajorRoom = false;
+
+
+    Rigidbody mRigidbody;
+    private void OnCollisionStay(Collision collision)
+    {
+        
+     
+        var otherPos = collision.collider.transform.position;
+
+        Vector3 toCollider = otherPos - transform.position;
+        float distanceSqr = Vector3.Magnitude(toCollider);
+        
+        if(distanceSqr == 0)
+        {
+            mRigidbody.AddForce(Vector3.right * mRadialForce, ForceMode.Impulse);
+            collision.rigidbody.AddForce(Vector3.left * mRadialForce, ForceMode.Impulse);
+        }
+        else
+        {
+            Vector3 directionToCol = Vector3.Normalize(toCollider);
+            mRigidbody.AddForce(-directionToCol * (1.5f / distanceSqr) * mRadialForce, ForceMode.Impulse);
+            collision.rigidbody.AddForce(directionToCol * (1.5f / distanceSqr) * mRadialForce, ForceMode.Impulse);
+        }
+    }
+
+
+    private void Awake()
+    {
+        CreateGrid();
+        mRigidbody = GetComponent<Rigidbody>();
+        Time.timeScale = 3;
+    }
 
     void Start()
     {
-        CreateGrid();
+
     }
 
     public void CreateGrid()
@@ -42,11 +76,17 @@ public class GridGenerator : MonoBehaviour
         shuffledTileCoords = new Queue<Geometry.Coord>(Utility.ShuffleArray(allTileCoords.ToArray(), seed));
 
         string holderName = "Generated Map";
-        if (transform.FindChild(holderName))
+        if (transform.Find(holderName))
         {
-            DestroyImmediate(transform.FindChild(holderName).gameObject);
+            var temp = transform.Find(holderName);
+
+            if (temp != null)
+            {
+                DestroyImmediate(temp.gameObject);
+            }
         }
         Transform mapHolder = new GameObject(holderName).transform;
+
         mapHolder.parent = transform;
 
         for (int x = 0; x < gridSize.x; x++)
@@ -59,7 +99,6 @@ public class GridGenerator : MonoBehaviour
                 newTile.parent = mapHolder;
                 BoxCollider box = GetComponent<BoxCollider>();
                 box.size = new Vector3(gridSize.x, 1, gridSize.y);
-                box.center = -transform.position;
             }
         }
 
