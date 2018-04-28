@@ -34,8 +34,6 @@ public class HullTriangulatorEditor : Editor
 
         if (GUILayout.Button("Trianglulate"))
         {
-            //int maxPoints = 0;
-            //maxPoints = triangulator.RunPassOnTriangles(triangulator.triangles.Count, maxPoints);
             triangulator.roomGen.SetRoomPositions();
             for (int i = 0; i < triangulator.roomGen.roomPositions.Count; i++)
             {
@@ -44,7 +42,6 @@ public class HullTriangulatorEditor : Editor
                 triangulator.allPoints.Add(temp);
             }
 
-            //triangulator.GeneratePoints();
             triangulator.Sort(ref triangulator.allPoints);
             triangulator.convexHullPoints = triangulator.GenerateConvexHull(triangulator.allPoints);
             triangulator.GetInnerPoints();
@@ -81,7 +78,6 @@ public class HullTriangulatorEditor : Editor
                         {
                             triangulator.minimumSpanningTree.Add(triangulator.triangles[i].lines[j]);
                         }
-
                     }
                 }
             }
@@ -112,10 +108,10 @@ public class HullTriangulatorEditor : Editor
         }
 
 
-        if (GUILayout.Button("Create Hallways"))
-        {
-            triangulator.MakeStraightLines();
-        }
+        //if (GUILayout.Button("Create Hallways"))
+        //{
+        //    //triangulator.MakeStraightLines();
+        //}
     }
 }
 

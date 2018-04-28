@@ -23,6 +23,9 @@ public class RoomGenerator : MonoBehaviour
 
     public List<Vector3> roomPositions;
 
+    public List<Geometry.Line> minimumSpanningTree;
+    public List<Geometry.Line> hallways;
+
 
     public bool separateFlag = false;
     public bool isDone = false;
@@ -78,6 +81,7 @@ public class RoomGenerator : MonoBehaviour
                 roomTemplate.GetComponent<GridGenerator>().gridSize.x = xRange[i];
                 roomTemplate.GetComponent<GridGenerator>().gridSize.y = zRange[i];
                 allRooms[i] = Instantiate(roomTemplate.gameObject);
+                allRooms[i].transform.parent = transform;
 
 
                 allRooms[i].transform.localScale = new Vector3(10, 1, 10);
@@ -86,6 +90,7 @@ public class RoomGenerator : MonoBehaviour
                 zSum += allRooms[i].GetComponent<GridGenerator>().gridSize.y;
                 xSum += allRooms[i].GetComponent<GridGenerator>().gridSize.x;
             }
+            minimumSpanningTree = GetComponent<Triangulator>().minimumSpanningTree;
         }
 
         float xMean = (xSum / numObjects) * 0.75f;
@@ -111,6 +116,8 @@ public class RoomGenerator : MonoBehaviour
         {
             mainRooms[i].GetComponentInChildren<MeshRenderer>().material.color = Color.red;
         }
+
+
     }
 
     // Use this for initialization
@@ -123,6 +130,7 @@ public class RoomGenerator : MonoBehaviour
     void Update()
     {
         //SeparateRooms();
+        DrawLines(hallways, Color.blue);
     }
 
     private void FixedUpdate()
@@ -199,8 +207,16 @@ public class RoomGenerator : MonoBehaviour
 
     }
 
-
-
+    public void DrawLines(List<Geometry.Line> lines, Color color)
+    {
+        if (lines != null && lines.Count > 0)
+        {
+            for (int i = 0; i < lines.Count; i++)
+            {
+                Debug.DrawLine(lines[i].start, lines[i].end, color);
+            }
+        }
+    }
 
 }
 

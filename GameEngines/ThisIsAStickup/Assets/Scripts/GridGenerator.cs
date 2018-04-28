@@ -13,6 +13,7 @@ public class GridGenerator : MonoBehaviour
 
     public int seed = 10;
     public int obstacleCount = 10;
+    public uint IDTag = 0;
 
     [Range(0, 1)]
     public float outLinePercent;
@@ -20,9 +21,11 @@ public class GridGenerator : MonoBehaviour
     public List<Geometry.Coord> allTileCoords;
     Queue<Geometry.Coord> shuffledTileCoords;
 
+    public List<Geometry.Line> hallways;
+
     float mRadialForce = 10000.0f; //Newtons
 
-    bool isMajorRoom = true;
+    bool isMajorRoom = false;
 
     Rigidbody mRigidbody;
     private void OnCollisionStay(Collision collision)
@@ -54,7 +57,22 @@ public class GridGenerator : MonoBehaviour
 
     void Start()
     {
+    }
 
+    private void Update()
+    {
+        DrawLines(hallways, Color.cyan);
+    }
+
+    public void DrawLines(List<Geometry.Line> lines, Color color)
+    {
+        if (lines != null && lines.Count > 0)
+        {
+            for (int i = 0; i < lines.Count; i++)
+            {
+                Debug.DrawLine(lines[i].start, lines[i].end, color);
+            }
+        }
     }
 
     public void CreateGrid()
@@ -135,4 +153,9 @@ public class GridGenerator : MonoBehaviour
 
         transform.position = new Vector3(x, y, z);
     }
+
+
+
+
+
 }
