@@ -17,25 +17,22 @@ public class GridGenerator : MonoBehaviour
     [Range(0, 1)]
     public float outLinePercent;
 
-    List<Geometry.Coord> allTileCoords;
+    public List<Geometry.Coord> allTileCoords;
     Queue<Geometry.Coord> shuffledTileCoords;
 
-    float mRadialForce = 60000.0f; //Newtons
+    float mRadialForce = 10000.0f; //Newtons
 
-    bool isMajorRoom = false;
-
+    bool isMajorRoom = true;
 
     Rigidbody mRigidbody;
     private void OnCollisionStay(Collision collision)
     {
-        
-     
         var otherPos = collision.collider.transform.position;
 
         Vector3 toCollider = otherPos - transform.position;
         float distanceSqr = Vector3.Magnitude(toCollider);
-        
-        if(distanceSqr == 0)
+
+        if (distanceSqr == 0)
         {
             mRigidbody.AddForce(Vector3.right * mRadialForce, ForceMode.Impulse);
             collision.rigidbody.AddForce(Vector3.left * mRadialForce, ForceMode.Impulse);
@@ -48,12 +45,11 @@ public class GridGenerator : MonoBehaviour
         }
     }
 
-
     private void Awake()
     {
         CreateGrid();
         mRigidbody = GetComponent<Rigidbody>();
-        Time.timeScale = 3;
+        //Time.timeScale = 3;
     }
 
     void Start()
@@ -95,6 +91,10 @@ public class GridGenerator : MonoBehaviour
             {
                 Vector3 tilePosition = CoordToPosition(x, y);
                 Transform newTile = Instantiate(tilePrefab, tilePosition, Quaternion.Euler(Vector3.right * 90)) as Transform;
+                if (allTileCoords[x * y + y].type == Geometry.CellType.MajorRoom)
+                {
+                    newTile.GetComponentInChildren<MeshRenderer>().material.color = Color.red;
+                }
                 newTile.localScale = Vector3.one * (1 - outLinePercent);
                 newTile.parent = mapHolder;
                 BoxCollider box = GetComponent<BoxCollider>();
@@ -127,6 +127,12 @@ public class GridGenerator : MonoBehaviour
         return randomCoord;
     }
 
+    public void SnapToGrid(Vector3 cellDimensions)
+    {
+        float x = Mathf.Floor(transform.position.x / cellDimensions.x) * cellDimensions.x;
+        float y = Mathf.Floor(transform.position.y / cellDimensions.y) * cellDimensions.y;
+        float z = Mathf.Floor(transform.position.z / cellDimensions.z) * cellDimensions.z;
 
-
+        transform.position = new Vector3(x, y, z);
+    }
 }

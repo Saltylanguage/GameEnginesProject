@@ -49,40 +49,43 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
     public List<Geometry.Triangle> triangles = new List<Geometry.Triangle>();
 
     public List<Geometry.Line> minimumSpanningTree = new List<Geometry.Line>();
+    public List<Geometry.Line> hallways = new List<Geometry.Line>();
 
     public int NumberOfPoints = 100;
 
-    
+
     List<Vector2> indexList = new List<Vector2>();
 
     public bool mstMode = false;
+    public bool triangleMode = false;
     public bool convexMode = false;
+    public bool hallwayMode = false;
 
 
     //UNITY FUNCTIONS    
     void Start()
     {
 
-        roomGen = gameObject.AddComponent(typeof(RoomGenerator)) as RoomGenerator;
-        mstMode = false;
-        allPoints.Clear();
-        convexHullPoints.Clear();
-        innerPoints.Clear();
-        triangles.Clear();
+        //roomGen = gameObject.AddComponent(typeof(RoomGenerator)) as RoomGenerator;
+        //mstMode = false;
+        //allPoints.Clear();
+        //convexHullPoints.Clear();
+        //innerPoints.Clear();
+        //triangles.Clear();
 
-        GeneratePoints();
-        Sort(ref allPoints);
-        convexHullPoints = GenerateConvexHull(allPoints);
-        GetInnerPoints();
-        Triangulate();
+        //GeneratePoints();
+        //Sort(ref allPoints);
+        //convexHullPoints = GenerateConvexHull(allPoints);
+        //GetInnerPoints();
+        //Triangulate();
 
-        int maxPoints = 0;
+        //int maxPoints = 0;
 
-        for (int i = 0; i < 10; i++)
-        {
-            maxPoints = RunPassOnTriangles(triangles.Count, maxPoints);
-        }
-        roomGen = GetComponent<RoomGenerator>();
+        //for (int i = 0; i < 10; i++)
+        //{
+        //    maxPoints = RunPassOnTriangles(triangles.Count, maxPoints);
+        //}
+        //roomGen = GetComponent<RoomGenerator>();
 
         //for (int i = 0; i < roomGen.roomPositions.Count; i++)
         //{
@@ -101,22 +104,18 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         {
             DrawLines(minimumSpanningTree, Color.red);
         }
-        else if (!convexMode)
+        else if (triangleMode)
         {
             DrawTriangles();
         }
-        else
+        else if (convexMode)
         {
             DrawConvexHull();
         }
-        //if (Input.GetKeyDown(KeyCode.Space))
-        //{
-        //    debugIndex++;
-        //    if (debugIndex >= triangles.Count)
-        //    {
-        //        debugIndex = 0;
-        //    }
-        //}
+        else if (hallwayMode)
+        {
+            DrawHallways();
+        }
     }
 
     //POINT GENERATION
@@ -191,25 +190,33 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
     //DRAW FUNCTIONS
     public void DrawConvexHull()
     {
-        Color color = Color.green;
+        Color color = Color.magenta;
         for (int i = 0; i < convexHullPoints.Count - 1; i++)
         {
             if (i >= 1)
             {
-                color = Color.green;
+                color = Color.magenta;
             }
             Debug.DrawLine(convexHullPoints[i], convexHullPoints[i + 1], color);
         }
-        Debug.DrawLine(convexHullPoints[convexHullPoints.Count - 1], convexHullPoints[0], Color.green);
+        Debug.DrawLine(convexHullPoints[convexHullPoints.Count - 1], convexHullPoints[0], Color.magenta);
     }
     public void DrawTriangles()
     {
-        Color color = Color.yellow;
+        Color color = Color.blue;
         for (int i = 0; i < triangles.Count; i++)
         {
             Debug.DrawLine(triangles[i].pointA, triangles[i].pointB, color);
             Debug.DrawLine(triangles[i].pointB, triangles[i].pointC, color);
             Debug.DrawLine(triangles[i].pointC, triangles[i].pointA, color);
+        }
+    }
+    public void DrawHallways()
+    {
+        Color color = Color.blue;
+        for(int i = 0; i < hallways.Count; i++)
+        {
+            Debug.DrawLine(hallways[i].start, hallways[i].end, color);
         }
     }
     public void DrawLines(List<Geometry.Line> lines, Color color)
@@ -524,7 +531,6 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         return -1;
     }
 
-
     // MINIMUM SPANNING TREE & HELPER FUNCTIONS
     public void CalculateMinimumSpanningTree(List<Geometry.Triangle> triangulation)
     {
@@ -642,6 +648,92 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
             }
         }
         return false;
+    }
+
+    public void MakeStraightLines()
+    {
+        hallways.Clear();
+        for (int i = 0; i < minimumSpanningTree.Count; i++)
+        {
+            //3 cases:         
+            //Within x range - straight vertical line will connect both rooms
+            //Within y range - straight horizontal line will connect rooms
+            //Diagonal(not within either range) - An L shaped line is needed to connect both rooms.
+
+            //How to tell if they are within range.
+            Vector2 positionA = new Vector2(minimumSpanningTree[i].start.x, minimumSpanningTree[i].start.z);
+            Vector2 positionB = new Vector2(minimumSpanningTree[i].end.x, minimumSpanningTree[i].end.z);
+
+            //First find the midpoint between RoomA and RoomB
+            Vector2 midPoint = new Vector2((positionA.x + positionB.x) / 2.0f, (positionA.y + positionB.y) / 2.0f);
+            Vector2 gridSize = new Vector2(5, 5);
+
+            if (midPoint.x + (gridSize.x / 2) >= positionA.x && positionA.x >= midPoint.x - (gridSize.x / 2))
+            {
+                if (midPoint.x + (gridSize.x / 2) >= positionB.x && positionB.x >= midPoint.x - (gridSize.x / 2))
+                {
+                    // if both checks return true a straight vertical line passing through the midpoint will connect both rooms
+                    // draw a line from Vector2(midPoint.x,roomA.y) to Vector2(midPoint.x, roomB.y)
+                    Vector3 a = new Vector3(midPoint.x, 10, positionA.y);
+                    Vector3 b = new Vector3(midPoint.x, 10, positionB.y);
+                    hallways.Add(new Geometry.Line(a, b));
+                }
+            }
+
+            //if either check returns false: repeat the process to check along the y axis
+            else if (midPoint.y + (gridSize.y / 2) >= positionA.y && positionA.y >= midPoint.y - (gridSize.y / 2))
+            {
+
+                if (midPoint.y + (gridSize.y / 2) >= positionB.y && positionB.y >= midPoint.y - (gridSize.y / 2))
+                {
+                    //if both y checks return true a straight horizontal line passing through the midpoint will connect both rooms.
+                    Vector3 a = new Vector3(midPoint.x, 10, positionA.y);
+                    Vector3 b = new Vector3(midPoint.x, 10, positionB.y);
+                    hallways.Add(new Geometry.Line(a, b));
+                }
+            }
+
+            //If we get here, it means the two rooms cannot be connected with a single non-diagonal line
+
+            //We need to draw an L shaped line from the midpoints of the two rooms, but which way first?
+            //Up then right != Right then Up
+            //Rule: Travel along the longer line first.            
+
+            //That means: 
+            else
+            {
+                float rise = positionB.y - positionA.y;
+                float run = positionB.x - positionA.x;
+
+                if (rise > run)
+                {
+                    Vector3 temp = new Vector3(positionA.x, 10, positionB.y);
+                    hallways.Add(new Geometry.Line(positionA, temp));
+                    hallways.Add(new Geometry.Line(temp, positionB));
+                }
+                else if (run > rise)
+                {
+                    Vector3 temp = new Vector3(positionB.x, positionA.y);
+                    hallways.Add(new Geometry.Line(positionA, temp));
+                    hallways.Add(new Geometry.Line(temp, positionB));
+                }
+
+            }
+            //If rise > run 
+            // travel in the y direction first (either top or bottom edge depending on signage)
+            //Draw a line from roomA to Vector2(roomA.xPos, roomB.yPos). Call this line temp
+            //Next Draw a line from temp to roomB
+
+            //If run > rise
+            // travel in the x direction first(either left or right edge depending on signage)
+            //Draw a line from roomA to Vector2(roomB.xPos, roomA.yPos). Call this line temp
+            //Next Draw a line from Vector2(roomB.xPos, roomA.yPos) to roomB
+
+            //Do this for every edge and you will have straight, non-diagonal lines connecting every room.
+        }
+
+
+     
     }
 
 

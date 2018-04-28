@@ -13,14 +13,29 @@ public class HullTriangulatorEditor : Editor
         Triangulator triangulator = (Triangulator)target;
 
         if (GUILayout.Button("Reset"))
-        {
-            triangulator.mstMode = false;
+        {           
+            triangulator.allPoints.Clear();
+            triangulator.convexHullPoints.Clear();
+            triangulator.innerPoints.Clear();
+            triangulator.triangles.Clear();
+
+            triangulator.roomGen.roomPositions.Clear();            
+        }
+
+        if (GUILayout.Button("Clear"))
+        {           
             triangulator.allPoints.Clear();
             triangulator.convexHullPoints.Clear();
             triangulator.innerPoints.Clear();
             triangulator.triangles.Clear();
 
             triangulator.roomGen.roomPositions.Clear();
+        }
+
+        if (GUILayout.Button("Trianglulate"))
+        {
+            //int maxPoints = 0;
+            //maxPoints = triangulator.RunPassOnTriangles(triangulator.triangles.Count, maxPoints);
             triangulator.roomGen.SetRoomPositions();
             for (int i = 0; i < triangulator.roomGen.roomPositions.Count; i++)
             {
@@ -43,35 +58,12 @@ public class HullTriangulatorEditor : Editor
             }
         }
 
-        if (GUILayout.Button("Clear"))
-        {
-            triangulator.mstMode = false;
-            triangulator.allPoints.Clear();
-            triangulator.convexHullPoints.Clear();
-            triangulator.innerPoints.Clear();
-            triangulator.triangles.Clear();
-        }
-
-        if (GUILayout.Button("TrianglePass"))
-        {
-            int maxPoints = 0;
-            maxPoints = triangulator.RunPassOnTriangles(triangulator.triangles.Count, maxPoints);
-        }
-        //if (GUILayout.Button("Next Circle"))
-        //{
-        //    triangulator.debugIndex++;
-        //    if (triangulator.debugIndex >= triangulator.triangles.Count)
-        //    {
-        //        triangulator.debugIndex = 0;
-        //    }
-        //}
-
-
-
         if (GUILayout.Button("MST Mode"))
         {
+            triangulator.triangleMode = false;
             triangulator.mstMode = true;
             triangulator.convexMode = false;
+            triangulator.hallwayMode = false;
             if (triangulator.mstMode)
             {
                 triangulator.minimumSpanningTree.Clear();
@@ -97,14 +89,32 @@ public class HullTriangulatorEditor : Editor
 
         if (GUILayout.Button("Convex Hull Mode"))
         {
+            triangulator.triangleMode = false;
             triangulator.convexMode = true;
             triangulator.mstMode = false;
+            triangulator.hallwayMode = false;
         }
 
         if (GUILayout.Button("Triangulon!!!"))
         {
+            triangulator.triangleMode = true;
             triangulator.convexMode = false;
             triangulator.mstMode = false;
+            triangulator.hallwayMode = false;
+        }
+
+        if (GUILayout.Button("Hallway Mode"))
+        {
+            triangulator.triangleMode = false;
+            triangulator.convexMode = false;
+            triangulator.mstMode = false;
+            triangulator.hallwayMode = true;
+        }
+
+
+        if (GUILayout.Button("Create Hallways"))
+        {
+            triangulator.MakeStraightLines();
         }
     }
 }

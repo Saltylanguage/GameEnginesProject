@@ -15,6 +15,7 @@ public class RoomGenerator : MonoBehaviour
     public static List<float> zRange = new List<float>();
 
     public GameObject roomTemplate;
+
     public List<GameObject> allRooms;
 
     public List<GameObject> mainRooms;
@@ -45,14 +46,24 @@ public class RoomGenerator : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             randomPoints.Add(GetRandomPoint());
-            xRange.Add(Random.Range(10, 50));
-            zRange.Add(Random.Range(10, 50));
+            int tempX = (Random.Range(2, 10));
+            if (tempX % 2 != 0)
+            {
+                tempX++;
+            }
+            xRange.Add(tempX);
+
+            int tempZ = (Random.Range(2, 10));
+            if (tempZ % 2 != 0)
+            {
+                tempZ++;
+            }
+            zRange.Add(tempZ);
         }
     }
 
     void Awake()
     {
-
         archGen = GetComponent<ArchitectureGenerator>();
         convexGen = GetComponent<ConvexHullConstructor>();
         allRooms = new List<GameObject>(new GameObject[numObjects]);
@@ -61,16 +72,19 @@ public class RoomGenerator : MonoBehaviour
         float zSum = 0;
         for (int i = 0; i < numObjects; i++)
         {
+
             if (allRooms != null)
             {
-                allRooms[i] = Instantiate(roomTemplate);
+                roomTemplate.GetComponent<GridGenerator>().gridSize.x = xRange[i];
+                roomTemplate.GetComponent<GridGenerator>().gridSize.y = zRange[i];
+                allRooms[i] = Instantiate(roomTemplate.gameObject);
 
 
-                allRooms[i].transform.localScale = new Vector3(xRange[i], 10, zRange[i]);
+                allRooms[i].transform.localScale = new Vector3(10, 1, 10);
                 allRooms[i].transform.position = new Vector3(randomPoints[i].x, 10, randomPoints[i].y);
 
-                xSum += allRooms[i].transform.localScale.x;
-                zSum += allRooms[i].transform.localScale.z;
+                zSum += allRooms[i].GetComponent<GridGenerator>().gridSize.y;
+                xSum += allRooms[i].GetComponent<GridGenerator>().gridSize.x;
             }
         }
 
@@ -79,8 +93,12 @@ public class RoomGenerator : MonoBehaviour
 
         for (int i = 0; i < numObjects; i++)
         {
-            if (allRooms[i].transform.localScale.x >= xMean && allRooms[i].transform.localScale.z >= zMean)
+            if (allRooms[i].GetComponent<GridGenerator>().gridSize.x >= xMean && allRooms[i].GetComponent<GridGenerator>().gridSize.y >= zMean)
             {
+                for (int j = 0; j < allRooms[i].GetComponent<GridGenerator>().allTileCoords.Count; j++)
+                {
+                    allRooms[i].GetComponent<GridGenerator>().allTileCoords[j].type = Geometry.CellType.MajorRoom;
+                }
                 mainRooms.Add(allRooms[i]);
             }
             else
@@ -92,7 +110,6 @@ public class RoomGenerator : MonoBehaviour
         for (int i = 0; i < mainRooms.Count; i++)
         {
             mainRooms[i].GetComponentInChildren<MeshRenderer>().material.color = Color.red;
-            //mainRooms[i].transform.position += new Vector3(0, 1f, 0);
         }
     }
 
@@ -183,18 +200,7 @@ public class RoomGenerator : MonoBehaviour
     }
 
 
-    public void CreateTiledRoom(int width, int height)
-    {
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
 
-
-            }
-        }
-
-    }
 
 }
 

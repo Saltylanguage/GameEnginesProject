@@ -19,12 +19,12 @@ public class Geometry : MonoBehaviour {
         MAXTYPE
 
     }
-    public struct Coord
+    public class Coord
     {
         public int x;
         public int y;
 
-        CellType type;
+        public CellType type;
 
         public Coord(int _x, int _y)
         {
