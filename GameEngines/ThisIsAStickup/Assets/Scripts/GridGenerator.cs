@@ -23,7 +23,7 @@ public class GridGenerator : MonoBehaviour
 
     public List<Geometry.Line> hallways;
 
-    float mRadialForce = 10000.0f; //Newtons
+    float mRadialForce = 500.0f; //Newtons
 
     bool isMajorRoom = false;
 
@@ -52,7 +52,7 @@ public class GridGenerator : MonoBehaviour
     {
         CreateGrid();
         mRigidbody = GetComponent<Rigidbody>();
-        //Time.timeScale = 3;
+        Time.timeScale = 3;
     }
 
     void Start()

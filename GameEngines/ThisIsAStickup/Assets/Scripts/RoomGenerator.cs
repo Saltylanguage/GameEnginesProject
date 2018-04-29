@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class RoomGenerator : MonoBehaviour
 {
-    public static float radius = 300;
+    public static float radius = 10;
     public int numObjects = 25;
 
     public float xThreshold;
@@ -84,8 +84,8 @@ public class RoomGenerator : MonoBehaviour
                 allRooms[i].transform.parent = transform;
 
 
-                allRooms[i].transform.localScale = new Vector3(10, 1, 10);
-                allRooms[i].transform.position = new Vector3(randomPoints[i].x, 10, randomPoints[i].y);
+                allRooms[i].transform.localScale = new Vector3(1, 1, 1);
+                allRooms[i].transform.position = new Vector3(randomPoints[i].x, 1, randomPoints[i].y);
 
                 zSum += allRooms[i].GetComponent<GridGenerator>().gridSize.y;
                 xSum += allRooms[i].GetComponent<GridGenerator>().gridSize.x;

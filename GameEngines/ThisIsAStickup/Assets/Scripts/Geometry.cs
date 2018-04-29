@@ -64,6 +64,9 @@ public class Geometry : MonoBehaviour {
 
         public Vector3 start;
         public Vector3 end;
+        //Indices of the actual rooms
+        public int StartIndex;
+        public int EndIndex; 
 
         public float rise;
         public float run;

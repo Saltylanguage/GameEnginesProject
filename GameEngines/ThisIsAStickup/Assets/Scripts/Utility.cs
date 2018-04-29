@@ -40,121 +40,158 @@ public static class Utility
         return new Vector3(x, y, z);
     }
 
+
     public static void MakeStraightLines(RoomGenerator roomGen)
     {
         List<Geometry.Line> hallways = new List<Geometry.Line>();
         if (roomGen != null)
         {
+
+            float xScale = 0;
+            float yScale = 0;
             List<Geometry.Line> mst = roomGen.minimumSpanningTree;
 
             for (int i = 0; i < mst.Count; i++)
             {
 
-
+                //We want to grab diagonal lines and turn them into vertical and straight lines
                 //3 cases:         
                 //Within x range - straight vertical line will connect both rooms
                 //Within y range - straight horizontal line will connect rooms
                 //Diagonal(not within either range) - An L shaped line is needed to connect both rooms.
 
+                // First 2 cases:
+                // Find the midpoint between the two rooms
+                // Determine if this midpoint is within the x or y range of both rooms
+                // If both rooms are in the same range along 1 axis (either x or y) we can connect both of them with a straight line.
+                // If they are within range along the x-axis then this line will go from (midPoint.xPos,RoomA.yPos)  to (midPoint.xPos, RoomB.yPos)
+                // If they are within range along the y-axis then this line will go from (RoomA.xPos, midPoint.yPos)  to (RoomB.xPos, midPoint.yPos)
 
-                //First we need access to both rooms.
-                //Check through the list of rooms for the room where start == position.  This is RoomA
-                //Check again for the room where end == position.  This is RoomB
-                Vector2 positionA = new Vector2(); //mst[i].start.x, mst[i].start.z);
-                Vector2 positionB = new Vector2(); //mst[i].end.x, mst[i].end.z);
+                // Last Case: We need to draw an L shaped line to connect the two rooms
+                // This L consists of 2 lines (1 vertical, 1 horizontal)
+                // Determine which line is longer (rise > run ?)
+
+                // Use the start and end of the MST line as the room positions
+                // Example:  Assume rise > run so we travel vertically first
+                // Draw First line from RoomA.position to (RoomA.x, RoomB.y)
+                // Draw Second line from (RoomA.x, RoomB.y) to RoomB.pos
+
+                Vector2 positionA = new Vector2();
+                Vector2 positionB = new Vector2();
                 Vector2 gridSizeA = new Vector2();
                 Vector2 gridSizeB = new Vector2();
+
+                //We need to determine which rooms we are dealing with and grab the grid size for each room
                 for (int j = 0; j < roomGen.allRooms.Count; j++)
                 {
-                    if (mst[i].start.x == roomGen.allRooms[j].transform.position.x && mst[i].start.z == roomGen.allRooms[j].transform.position.z)
+                    // Get the positions
+                    Vector3 start = mst[i].start;
+                    Vector3 end = mst[i].end;
+                    Vector3 room = roomGen.allRooms[j].transform.position;
+
+                    // Ignore y
+                    start.y = 0.0f;
+                    end.y = 0.0f;
+                    room.y = 0.0f;
+
+                    // Is start inside the room?
+                    if (Vector3.Distance(start, room) < Mathf.Epsilon)
                     {
-                        positionA = new Vector2(mst[i].start.x, mst[i].start.z);
+                        positionA.x = roomGen.allRooms[j].transform.position.x;
+                        positionA.y = roomGen.allRooms[j].transform.position.z;
                         gridSizeA = new Vector2(roomGen.allRooms[j].GetComponent<GridGenerator>().gridSize.x, roomGen.allRooms[j].GetComponent<GridGenerator>().gridSize.y);
+                        //xScale = roomGen.allRooms[j].GetComponent<GridGenerator>().gameObject.transform.localScale.x;                    
                     }
-                    else if (mst[i].end.x == roomGen.allRooms[j].transform.position.x && mst[i].end.z == roomGen.allRooms[j].transform.position.z)
+                    // Is end inside the room?
+                    else if (Vector3.Distance(end, room) < Mathf.Epsilon)
                     {
-                        positionB = new Vector2(mst[i].end.x, mst[i].end.z);
+                        positionB.x = roomGen.allRooms[j].transform.position.x;
+                        positionB.y = roomGen.allRooms[j].transform.position.z;
                         gridSizeB = new Vector2(roomGen.allRooms[j].GetComponent<GridGenerator>().gridSize.x, roomGen.allRooms[j].GetComponent<GridGenerator>().gridSize.y);
+                        //xScale = roomGen.allRooms[j].GetComponent<GridGenerator>().gameObject.transform.localScale.x;                    
                     }
                 }
 
-                //Next grab the grid size for each room
+
+                //Now we should have the right room positions
+
+
+                //Next find the midpoint between RoomA and RoomB
+                Vector2 midPoint = new Vector2();
+                midPoint.x = ((mst[i].start.x + mst[i].end.x) / 2.0f);
+                midPoint.y = ((mst[i].start.z + mst[i].end.z) / 2.0f);
+
+                float rangeA = gridSizeA.x / 2.0f;
+                float rangeB = gridSizeB.x / 2.0f;
                 
 
-                //How to tell if they are within range.
+                bool xInRangeOfA = (positionA.x - rangeA) <= midPoint.x && midPoint.x <= (positionA.x + rangeA);
+                bool xInRangeOfB = (positionB.x - rangeB) <= midPoint.x && midPoint.x <= (positionB.x + rangeB);
 
-                
-
-                //First find the midpoint between RoomA and RoomB
-                Vector2 midPoint = new Vector2((positionA.x + positionB.x) / 2.0f, (positionA.y + positionB.y) / 2.0f);
-
-
-                if (midPoint.x + (gridSizeA.x / 2) >= positionA.x && positionA.x >= midPoint.x - (gridSizeA.x / 2))
+                if (xInRangeOfA && xInRangeOfB)
                 {
-                    if (midPoint.x + (gridSizeB.x / 2) >= positionB.x && positionB.x >= midPoint.x - (gridSizeB.x / 2))
-                    {
-                        // if both checks return true a straight vertical line passing through the midpoint will connect both rooms
-                        // draw a line from Vector2(midPoint.x,roomA.y) to Vector2(midPoint.x, roomB.y)
-                        Vector3 a = new Vector3(midPoint.x, 10, positionA.y);
-                        Vector3 b = new Vector3(midPoint.x, 10, positionB.y);
-                        hallways.Add(new Geometry.Line(a, b));
-                    }
+                    // if both checks return true a straight vertical line passing through the midpoint will connect both rooms
+                    // draw a line from Vector2(midPoint.x,roomA.y) to Vector2(midPoint.x, roomB.y)
+                    positionA.x = midPoint.x;
+                    positionB.x = midPoint.x;
+
+                    hallways.Add(new Geometry.Line(positionA, positionB));
+                    continue;
                 }
+
+                //rangeA = gridSizeA.y / 2.0f;
+                //rangeB = gridSizeB.y / 2.0f;
+
+                //bool yInRangeOfA = (positionA.y - rangeA) <= midPoint.y && midPoint.y <= (positionA.y + rangeA);
+                //bool yInRangeOfB = (positionB.y - rangeB) <= midPoint.y && midPoint.y <= (positionB.y + rangeB);
 
                 //if either check returns false: repeat the process to check along the y axis
-                else if (midPoint.y + (gridSizeA.y / 2) >= positionA.y && positionA.y >= midPoint.y - (gridSizeA.y / 2))
-                {
+                //if (yInRangeOfA && yInRangeOfB)
+                //{
+                //    // if both checks return true a straight vertical line passing through the midpoint will connect both rooms
+                //    // draw a line from Vector2(midPoint.x,roomA.y) to Vector2(midPoint.x, roomB.y)
+                //    positionA.y = midPoint.y;
+                //    positionB.y = midPoint.y;
 
-                    if (midPoint.y + (gridSizeB.y / 2) >= positionB.y && positionB.y >= midPoint.y - (gridSizeB.y / 2))
-                    {
-                        //if both y checks return true a straight horizontal line passing through the midpoint will connect both rooms.
-                        Vector3 a = new Vector3(midPoint.x, 10, positionA.y);
-                        Vector3 b = new Vector3(midPoint.x, 10, positionB.y);
-                        hallways.Add(new Geometry.Line(a, b));
-                    }
-                }
+                //    hallways.Add(new Geometry.Line(positionA, positionB));
+                //    continue;
+                //}
+                //else
+                //{
+                //    float rise = positionB.y - positionA.y;
+                //    float run = positionB.x - positionA.x;
 
-                //If we get here, it means the two rooms cannot be connected with a single non-diagonal line
+                //    if (Mathf.Abs(rise) > Mathf.Abs(run))
+                //    {
+                //        Vector3 temp = new Vector3(positionB.x, 10, positionA.y);
+                //        hallways.Add(new Geometry.Line(positionA, temp));
+                //        hallways.Add(new Geometry.Line(temp, positionB));
+                //        continue;
+                //    }
+                //    else if (Mathf.Abs(rise) < Mathf.Abs(run))
+                //    {
+                //        Vector3 temp = new Vector3(positionB.x, 10, positionA.y);
+                //        hallways.Add(new Geometry.Line(positionA, temp));
+                //        hallways.Add(new Geometry.Line(temp, positionB));
+                //        continue;
+                //    }
 
-                //We need to draw an L shaped line from the midpoints of the two rooms, but which way first?
-                //Up then right != Right then Up
-                //Rule: Travel along the longer line first.            
+                //}
 
-                //That means: 
-                else
-                {
-                    float rise = positionB.y - positionA.y;
-                    float run = positionB.x - positionA.x;
-
-                    if (rise > run)
-                    {
-                        Vector3 temp = new Vector3(positionA.x, 10, positionB.y);
-                        hallways.Add(new Geometry.Line(positionA, temp));
-                        hallways.Add(new Geometry.Line(temp, positionB));
-                    }
-                    else if (run > rise)
-                    {
-                        Vector3 temp = new Vector3(positionB.x, positionA.y);
-                        hallways.Add(new Geometry.Line(positionA, temp));
-                        hallways.Add(new Geometry.Line(temp, positionB));
-                    }
-
-                }
-                //If rise > run 
-                // travel in the y direction first (either top or bottom edge depending on signage)
-                //Draw a line from roomA to Vector2(roomA.xPos, roomB.yPos). Call this line temp
-                //Next Draw a line from temp to roomB
-
-                //If run > rise
-                // travel in the x direction first(either left or right edge depending on signage)
-                //Draw a line from roomA to Vector2(roomB.xPos, roomA.yPos). Call this line temp
-                //Next Draw a line from Vector2(roomB.xPos, roomA.yPos) to roomB
-
-                //Do this for every edge and you will have straight, non-diagonal lines connecting every room.
             }
+
         }
         roomGen.hallways = hallways;
     }
 }
+
+
+
+
+
+
+
+
+
 
 

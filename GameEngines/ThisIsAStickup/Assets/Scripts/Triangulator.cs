@@ -72,7 +72,7 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
     {
         if (mstMode)
         {
-            //DrawLines(minimumSpanningTree, Color.blue);
+            DrawLines(minimumSpanningTree, Color.red);
         }
         else if (triangleMode)
         {
@@ -185,13 +185,13 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
             Debug.DrawLine(hallways[i].start, hallways[i].end, color);
         }
     }
-    //public void DrawLines(List<Geometry.Line> lines, Color color)
-    //{
-    //    for (int i = 0; i < lines.Count; i++)
-    //    {
-    //        Debug.DrawLine(lines[i].start, lines[i].end, color);
-    //    }
-    //}
+    public void DrawLines(List<Geometry.Line> lines, Color color)
+    {
+        for (int i = 0; i < lines.Count; i++)
+        {
+            Debug.DrawLine(lines[i].start, lines[i].end, color);
+        }
+    }
     void OnDrawGizmos()
     {
         if (allPoints != null && allPoints.Count > 0)
@@ -509,7 +509,7 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         {
             if (!ListContainsLine(listOfAllLines, triangulation[i].AB))
             {
-                listOfAllLines.Add(triangulation[i].AB);
+                listOfAllLines.Add(triangulation[i].AB);                
             }
             if (!ListContainsLine(listOfAllLines, triangulation[i].BC))
             {
@@ -579,6 +579,7 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
                         }
 
                         minimumSpanningTree.Add(listOfAllLines[i]);
+                        
                         listOfAllLines.RemoveAt(i);
                         i = 0;
                         if (visitedPoints.Count == allPoints.Count)
