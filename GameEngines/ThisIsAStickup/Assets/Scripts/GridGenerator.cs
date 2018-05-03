@@ -11,6 +11,8 @@ public class GridGenerator : MonoBehaviour
     public Transform obstaclePrefab;
     public Vector2 gridSize;
 
+    public Geometry.CellType tileType = Geometry.CellType.Empty;
+
     public int seed = 10;
     public int obstacleCount = 10;
     public uint IDTag = 0;
@@ -21,7 +23,7 @@ public class GridGenerator : MonoBehaviour
     public List<Geometry.Coord> allTileCoords;
     Queue<Geometry.Coord> shuffledTileCoords;
 
-    public List<Geometry.Line> hallways;
+
 
     float mRadialForce = 500.0f; //Newtons
 
@@ -61,7 +63,7 @@ public class GridGenerator : MonoBehaviour
 
     private void Update()
     {
-        DrawLines(hallways, Color.cyan);
+
     }
 
     public void DrawLines(List<Geometry.Line> lines, Color color)
@@ -93,15 +95,10 @@ public class GridGenerator : MonoBehaviour
         if (transform.Find(holderName))
         {
             var temp = transform.Find(holderName);
-
-            if (temp != null)
-            {
-                DestroyImmediate(temp.gameObject);
-            }
+            DestroyImmediate(temp.gameObject);
         }
         Transform mapHolder = new GameObject(holderName).transform;
-
-        mapHolder.parent = transform;
+        mapHolder.transform.parent = transform;
 
         for (int x = 0; x < gridSize.x; x++)
         {
@@ -109,14 +106,10 @@ public class GridGenerator : MonoBehaviour
             {
                 Vector3 tilePosition = CoordToPosition(x, y);
                 Transform newTile = Instantiate(tilePrefab, tilePosition, Quaternion.Euler(Vector3.right * 90)) as Transform;
-                if (allTileCoords[x * y + y].type == Geometry.CellType.MajorRoom)
-                {
-                    newTile.GetComponentInChildren<MeshRenderer>().material.color = Color.red;
-                }
                 newTile.localScale = Vector3.one * (1 - outLinePercent);
                 newTile.parent = mapHolder;
                 BoxCollider box = GetComponent<BoxCollider>();
-                box.size = new Vector3(gridSize.x, 1, gridSize.y);
+                box.size = new Vector3(gridSize.x * (1 - outLinePercent), 1, gridSize.y * (1 - outLinePercent));
             }
         }
 

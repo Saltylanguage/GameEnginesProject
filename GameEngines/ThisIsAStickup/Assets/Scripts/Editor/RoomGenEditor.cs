@@ -13,21 +13,20 @@ public class RoomGenEditor : Editor
 
         if (GUILayout.Button("Snap To Grid"))
         {
-            for (int i = 0; i < roomGen.allRooms.Count; i++)
-            {
-                Vector3 scale = roomGen.allRooms[i].gameObject.transform.localScale;
-                GridGenerator gridGen = roomGen.allRooms[i].GetComponent<GridGenerator>();
+            GameObject[] objects = GameObject.FindGameObjectsWithTag("Grid");
 
-                gridGen.gameObject.GetComponent<BoxCollider>().isTrigger = true;
+            GridGenerator[] allGrids = FindObjectsOfType<GridGenerator>();
+            for (int i = 0; i < allGrids.Length; i++)
+            {
+                GridGenerator gridGen = allGrids[i].GetComponent<GridGenerator>();
                 gridGen.gameObject.transform.position = Utility.GetGridSnappedPosition
                                                         (gridGen.gameObject.transform.position, gridGen.transform.localScale);
-
             }
         }
 
         if (GUILayout.Button("Create Hallways"))
         {
-            Utility.MakeStraightLines(roomGen);          
+            Utility.MakeStraightLines(roomGen);
         }
     }
 

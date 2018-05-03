@@ -49,9 +49,9 @@ public class Geometry : MonoBehaviour {
         {
 
             start = pointA;
-            start.y = 20;
+            start.y = 0;
             end = pointB;
-            end.y = 20;
+            end.y = 0;
 
             rise = pointA.z - pointB.z;
             run = pointA.x - pointB.x;
@@ -91,6 +91,8 @@ public class Geometry : MonoBehaviour {
             pointB = b;
             pointC = c;
 
+ 
+
             AB = new Line(pointA, pointB);
             BC = new Line(pointB, pointC);
             CA = new Line(pointC, pointA);
@@ -104,6 +106,7 @@ public class Geometry : MonoBehaviour {
             circumCircle = new Geometry.Circle();
 
             circumCircle = CalculateCircumcircle(this);
+
 
 
         }

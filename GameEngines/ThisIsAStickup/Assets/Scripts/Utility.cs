@@ -36,7 +36,6 @@ public static class Utility
         float zTemp = target.z * zReciprical;
         float z = Mathf.Round(zTemp) / zReciprical;
 
-
         return new Vector3(x, y, z);
     }
 
@@ -123,7 +122,7 @@ public static class Utility
 
                 float rangeA = gridSizeA.x / 2.0f;
                 float rangeB = gridSizeB.x / 2.0f;
-                
+
 
                 bool xInRangeOfA = (positionA.x - rangeA) <= midPoint.x && midPoint.x <= (positionA.x + rangeA);
                 bool xInRangeOfB = (positionB.x - rangeB) <= midPoint.x && midPoint.x <= (positionB.x + rangeB);
@@ -135,53 +134,81 @@ public static class Utility
                     positionA.x = midPoint.x;
                     positionB.x = midPoint.x;
 
-                    hallways.Add(new Geometry.Line(positionA, positionB));
+                    Vector3 a = new Vector3(positionA.x, -10, positionA.y);
+                    Vector3 b = new Vector3(positionB.x, -10, positionB.y);
+
+                    //BAD MOVE PASSING A VECTOR2 as a VECTOR3
+                    hallways.Add(new Geometry.Line(a, b));
+
+
+
                     continue;
                 }
 
-                //rangeA = gridSizeA.y / 2.0f;
-                //rangeB = gridSizeB.y / 2.0f;
+                rangeA = gridSizeA.y / 2.0f;
+                rangeB = gridSizeB.y / 2.0f;
 
-                //bool yInRangeOfA = (positionA.y - rangeA) <= midPoint.y && midPoint.y <= (positionA.y + rangeA);
-                //bool yInRangeOfB = (positionB.y - rangeB) <= midPoint.y && midPoint.y <= (positionB.y + rangeB);
+                bool yInRangeOfA = (positionA.y - rangeA) <= midPoint.y && midPoint.y <= (positionA.y + rangeA);
+                bool yInRangeOfB = (positionB.y - rangeB) <= midPoint.y && midPoint.y <= (positionB.y + rangeB);
 
                 //if either check returns false: repeat the process to check along the y axis
-                //if (yInRangeOfA && yInRangeOfB)
-                //{
-                //    // if both checks return true a straight vertical line passing through the midpoint will connect both rooms
-                //    // draw a line from Vector2(midPoint.x,roomA.y) to Vector2(midPoint.x, roomB.y)
-                //    positionA.y = midPoint.y;
-                //    positionB.y = midPoint.y;
+                if (yInRangeOfA && yInRangeOfB)
+                {
+                    // if both checks return true a straight vertical line passing through the midpoint will connect both rooms
+                    // draw a line from Vector2(midPoint.x,roomA.y) to Vector2(midPoint.x, roomB.y)
+                    positionA.y = midPoint.y;
+                    positionB.y = midPoint.y;
 
-                //    hallways.Add(new Geometry.Line(positionA, positionB));
-                //    continue;
-                //}
-                //else
-                //{
-                //    float rise = positionB.y - positionA.y;
-                //    float run = positionB.x - positionA.x;
+                    Vector3 a = new Vector3(positionA.x, -10, positionA.y);
+                    Vector3 b = new Vector3(positionB.x, -10, positionB.y);
 
-                //    if (Mathf.Abs(rise) > Mathf.Abs(run))
-                //    {
-                //        Vector3 temp = new Vector3(positionB.x, 10, positionA.y);
-                //        hallways.Add(new Geometry.Line(positionA, temp));
-                //        hallways.Add(new Geometry.Line(temp, positionB));
-                //        continue;
-                //    }
-                //    else if (Mathf.Abs(rise) < Mathf.Abs(run))
-                //    {
-                //        Vector3 temp = new Vector3(positionB.x, 10, positionA.y);
-                //        hallways.Add(new Geometry.Line(positionA, temp));
-                //        hallways.Add(new Geometry.Line(temp, positionB));
-                //        continue;
-                //    }
+                    hallways.Add(new Geometry.Line(a, b));
+                    continue;
+                }
 
-                //}
+                else if (!yInRangeOfA || !yInRangeOfB || !xInRangeOfA || !xInRangeOfB)
+                {
+                    float rise = positionB.y - positionA.y;
+                    float run = positionB.x - positionA.x;
 
+                    if (rise > run)
+                    {
+                        Vector3 temp = new Vector3(positionA.x, -10, positionB.y);
+                        Vector3 a = new Vector3(positionA.x, -10, positionA.y);
+                        Vector3 b = new Vector3(positionB.x, -10, positionB.y);
+
+                        hallways.Add(new Geometry.Line(a, temp));
+                        hallways.Add(new Geometry.Line(temp, b));
+                        continue;
+                    }
+                    else if (rise < run)
+                    {
+                        Vector3 temp = new Vector3(positionB.x, -10, positionA.y);
+                        Vector3 a = new Vector3(positionA.x, -10, positionA.y);
+                        Vector3 b = new Vector3(positionB.x, -10, positionB.y);
+
+                        hallways.Add(new Geometry.Line(a, temp));
+                        hallways.Add(new Geometry.Line(temp, b));
+                        continue;
+                    }
+                }
             }
 
         }
         roomGen.hallways = hallways;
+
+        MakeHallWays(roomGen);
+    }
+
+    public static void MakeHallWays(RoomGenerator roomGen)
+    {
+        for (int i = 0; i < roomGen.hallways.Count; i++)
+        {
+            GameObject newHallwayCell = MonoBehaviour.Instantiate(roomGen.hallwayTemplate, Vector3.zero , Quaternion.identity) as GameObject;
+            newHallwayCell.GetComponent<GridGenerator>().gridSize = new Vector2(1, 1);
+            newHallwayCell.transform.position = new Vector3(i, 0, 0);
+        }
+
     }
 }
 

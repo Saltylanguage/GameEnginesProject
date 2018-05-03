@@ -15,6 +15,7 @@ public class RoomGenerator : MonoBehaviour
     public static List<float> zRange = new List<float>();
 
     public GameObject roomTemplate;
+    public GameObject hallwayTemplate;
 
     public List<GameObject> allRooms;
 
@@ -25,7 +26,6 @@ public class RoomGenerator : MonoBehaviour
 
     public List<Geometry.Line> minimumSpanningTree;
     public List<Geometry.Line> hallways;
-
 
     public bool separateFlag = false;
     public bool isDone = false;
@@ -84,8 +84,8 @@ public class RoomGenerator : MonoBehaviour
                 allRooms[i].transform.parent = transform;
 
 
-                allRooms[i].transform.localScale = new Vector3(1, 1, 1);
-                allRooms[i].transform.position = new Vector3(randomPoints[i].x, 1, randomPoints[i].y);
+                //allRooms[i].transform.localScale = new Vector3(1, 1, 1);
+                allRooms[i].transform.position = new Vector3(randomPoints[i].x, 10, randomPoints[i].y);
 
                 zSum += allRooms[i].GetComponent<GridGenerator>().gridSize.y;
                 xSum += allRooms[i].GetComponent<GridGenerator>().gridSize.x;
@@ -98,7 +98,8 @@ public class RoomGenerator : MonoBehaviour
 
         for (int i = 0; i < numObjects; i++)
         {
-            if (allRooms[i].GetComponent<GridGenerator>().gridSize.x >= xMean && allRooms[i].GetComponent<GridGenerator>().gridSize.y >= zMean)
+            bool biggerThanAverage = allRooms[i].GetComponent<GridGenerator>().gridSize.x >= xMean && allRooms[i].GetComponent<GridGenerator>().gridSize.y >= zMean;
+            if (biggerThanAverage)
             {
                 for (int j = 0; j < allRooms[i].GetComponent<GridGenerator>().allTileCoords.Count; j++)
                 {
@@ -116,27 +117,16 @@ public class RoomGenerator : MonoBehaviour
         {
             mainRooms[i].GetComponentInChildren<MeshRenderer>().material.color = Color.red;
         }
-
-
     }
 
     // Use this for initialization
-    void Start()
-    {
 
-
-    }
 
     void Update()
     {
-        //SeparateRooms();
         DrawLines(hallways, Color.blue);
     }
 
-    private void FixedUpdate()
-    {
-        //SeparateRooms();
-    }
 
 
     public bool SeparateRooms()
@@ -194,17 +184,6 @@ public class RoomGenerator : MonoBehaviour
         {
             roomPositions.Add(mainRooms[i].transform.position);
         }
-    }
-
-
-    public void CreateHallway(Geometry.Line connection)
-    {
-        // 1- first get the midpoint between the two room positions.
-        // 2 -check if this midpoint is within the boundaries of both rooms along either the x or y axis
-        //   a) if in x boundary: draw a vertical line between rooms at the midpoint
-        //   b) if in y boundary: draw a horizontal line between rooms at the midpoint
-        //   c) if in nether boundary: draw a horizontal line from each room's midpoint to it's counterpart's midpoint along 1 axis
-
     }
 
     public void DrawLines(List<Geometry.Line> lines, Color color)

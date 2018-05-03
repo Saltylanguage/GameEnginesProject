@@ -53,7 +53,6 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
 
     public int NumberOfPoints = 100;
 
-
     List<Vector2> indexList = new List<Vector2>();
 
     public bool mstMode = false;
@@ -63,35 +62,30 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
 
 
     //UNITY FUNCTIONS    
-    void Start()
-    {
 
-
-    }
     void Update()
     {
         if (mstMode)
         {
             DrawLines(minimumSpanningTree, Color.red);
         }
-        else if (triangleMode)
+        if (triangleMode)
         {
             DrawTriangles();
         }
-        else if (convexMode)
+        if (convexMode)
         {
             DrawConvexHull();
         }
-        else if (hallwayMode)
-        {
+
             DrawHallways();
-        }
+        
     }
 
     //POINT GENERATION
     public void GeneratePoints()
     {
-        float y = 20.0f;
+        float y = 0.0f;
         for (int index = 0; index < NumberOfPoints; index++)
         {
             float randx = Random.Range(0, 100);
@@ -182,7 +176,7 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         Color color = Color.blue;
         for(int i = 0; i < hallways.Count; i++)
         {
-            Debug.DrawLine(hallways[i].start, hallways[i].end, color);
+            Debug.DrawLine(roomGen.hallways[i].start, roomGen.hallways[i].end, color);
         }
     }
     public void DrawLines(List<Geometry.Line> lines, Color color)
@@ -194,20 +188,19 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
     }
     void OnDrawGizmos()
     {
-        if (allPoints != null && allPoints.Count > 0)
-        {
-            Gizmos.color = Color.blue;
-            Gizmos.DrawSphere(allPoints[0], 0.5f);
-            Gizmos.color = Color.red;
-            for (int i = 1; i < allPoints.Count; i++)
-            {
-                Gizmos.DrawSphere(allPoints[i], 0.3f);
+        //if (allPoints != null && allPoints.Count > 0)
+        //{
+        //    Gizmos.color = Color.blue;
+        //    Gizmos.DrawSphere(allPoints[0], 0.5f);
+        //    Gizmos.color = Color.red;
+        //    for (int i = 1; i < allPoints.Count; i++)
+        //    {
+        //        Gizmos.DrawSphere(allPoints[i], 1.0f);
 
-            }
-            Gizmos.color = Color.green;
-        }
+        //    }
+        //    Gizmos.color = Color.green;
+        //}
     }
-
 
     //CONVEX HULL GENERATION & HELPER FUNCTIONS
     public List<Vector3> GenerateConvexHull(List<Vector3> points)
@@ -272,6 +265,7 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
             }
         }
     }
+
     float LeftRightCheck(Vector3 pointA, Vector3 pointB, Vector3 queryPoint)
     {
         float ret = 0;
@@ -290,6 +284,7 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         FirstTriangulatePass();
         SubDivideTriangles();
     }
+
     void FirstTriangulatePass()
     {
         for (int i = 1; i < convexHullPoints.Count - 2; i++)
@@ -298,6 +293,7 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
         }
         triangles.Add(new Geometry.Triangle(convexHullPoints[0], convexHullPoints[convexHullPoints.Count - 2], convexHullPoints[convexHullPoints.Count - 1]));
     }
+
     void SubDivideTriangles()
     {
         bool triangleFound = false;
