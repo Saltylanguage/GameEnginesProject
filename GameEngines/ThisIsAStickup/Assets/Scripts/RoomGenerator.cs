@@ -66,7 +66,7 @@ public class RoomGenerator : MonoBehaviour
     }
 
     void Awake()
-    {
+    {       
         archGen = GetComponent<ArchitectureGenerator>();
         convexGen = GetComponent<ConvexHullConstructor>();
         allRooms = new List<GameObject>(new GameObject[numObjects]);
@@ -82,10 +82,8 @@ public class RoomGenerator : MonoBehaviour
                 roomTemplate.GetComponent<GridGenerator>().gridSize.y = zRange[i];
                 allRooms[i] = Instantiate(roomTemplate.gameObject);
                 allRooms[i].transform.parent = transform;
-
-
-                //allRooms[i].transform.localScale = new Vector3(1, 1, 1);
-                allRooms[i].transform.position = new Vector3(randomPoints[i].x, 10, randomPoints[i].y);
+            
+                allRooms[i].transform.position = new Vector3(randomPoints[i].x, 0, randomPoints[i].y);
 
                 zSum += allRooms[i].GetComponent<GridGenerator>().gridSize.y;
                 xSum += allRooms[i].GetComponent<GridGenerator>().gridSize.x;
@@ -103,12 +101,16 @@ public class RoomGenerator : MonoBehaviour
             {
                 for (int j = 0; j < allRooms[i].GetComponent<GridGenerator>().allTileCoords.Count; j++)
                 {
-                    allRooms[i].GetComponent<GridGenerator>().allTileCoords[j].type = Geometry.CellType.MajorRoom;
+                    allRooms[i].GetComponent<GridGenerator>().allTileCoords[j].type = Geometry.CellType.MajorRoom;  
                 }
                 mainRooms.Add(allRooms[i]);
             }
             else
             {
+                for (int j = 0; j < allRooms[i].GetComponent<GridGenerator>().allTileCoords.Count; j++)
+                {
+                    allRooms[i].GetComponent<GridGenerator>().allTileCoords[j].type = Geometry.CellType.MinorRoom;
+                }
                 roomsToDelete.Add(allRooms[i]);
             }
         }
@@ -126,8 +128,6 @@ public class RoomGenerator : MonoBehaviour
     {
         DrawLines(hallways, Color.blue);
     }
-
-
 
     public bool SeparateRooms()
     {
@@ -176,8 +176,6 @@ public class RoomGenerator : MonoBehaviour
         }
         return true;
     }
-
-
     public void SetRoomPositions()
     {
         for (int i = 0; i < mainRooms.Count; i++)

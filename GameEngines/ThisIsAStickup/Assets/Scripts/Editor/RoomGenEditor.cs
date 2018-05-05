@@ -28,7 +28,13 @@ public class RoomGenEditor : Editor
         {
             Utility.MakeStraightLines(roomGen);
         }
+
+        if(GUILayout.Button("Delete Rooms"))
+        {
+            for (int i = 0; i < roomGen.roomsToDelete.Count; i++) 
+            {
+                Destroy(roomGen.roomsToDelete[i]);
+            }
+        }
     }
-
-
 }

@@ -6,7 +6,6 @@ using UnityEditor;
 [CustomEditor(typeof(Triangulator))]
 public class HullTriangulatorEditor : Editor
 {
-
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
@@ -37,8 +36,7 @@ public class HullTriangulatorEditor : Editor
             triangulator.roomGen.SetRoomPositions();
             for (int i = 0; i < triangulator.roomGen.roomPositions.Count; i++)
             {
-                Vector3 temp = triangulator.roomGen.roomPositions[i];
-                temp.y += 20;
+                Vector3 temp = triangulator.roomGen.roomPositions[i];            
                 triangulator.allPoints.Add(temp);
             }
 
@@ -108,10 +106,7 @@ public class HullTriangulatorEditor : Editor
         }
 
 
-        //if (GUILayout.Button("Create Hallways"))
-        //{
-        //    //triangulator.MakeStraightLines();
-        //}
+
     }
 }
 

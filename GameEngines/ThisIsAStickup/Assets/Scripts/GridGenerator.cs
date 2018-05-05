@@ -15,15 +15,12 @@ public class GridGenerator : MonoBehaviour
 
     public int seed = 10;
     public int obstacleCount = 10;
-    public uint IDTag = 0;
 
     [Range(0, 1)]
     public float outLinePercent;
 
     public List<Geometry.Coord> allTileCoords;
     Queue<Geometry.Coord> shuffledTileCoords;
-
-
 
     float mRadialForce = 500.0f; //Newtons
 
@@ -54,13 +51,12 @@ public class GridGenerator : MonoBehaviour
     {
         CreateGrid();
         mRigidbody = GetComponent<Rigidbody>();
-        Time.timeScale = 3;
+        //Time.timeScale = 3;
     }
 
     void Start()
     {
     }
-
     private void Update()
     {
 
@@ -130,14 +126,12 @@ public class GridGenerator : MonoBehaviour
     {
         return new Vector3(-gridSize.x / 2 + 0.5f + x, 0, -gridSize.y / 2 + 0.5f + y);
     }
-
     public Geometry.Coord GetRandomCoord()
     {
         Geometry.Coord randomCoord = shuffledTileCoords.Dequeue();
         shuffledTileCoords.Enqueue(randomCoord);
         return randomCoord;
     }
-
     public void SnapToGrid(Vector3 cellDimensions)
     {
         float x = Mathf.Floor(transform.position.x / cellDimensions.x) * cellDimensions.x;
@@ -146,9 +140,5 @@ public class GridGenerator : MonoBehaviour
 
         transform.position = new Vector3(x, y, z);
     }
-
-
-
-
 
 }

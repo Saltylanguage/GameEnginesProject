@@ -19,6 +19,7 @@ public class Geometry : MonoBehaviour {
         MAXTYPE
 
     }
+
     public class Coord
     {
         public int x;
@@ -39,7 +40,6 @@ public class Geometry : MonoBehaviour {
             type = _type;
         }
     }
-
     public class Line
     {
         public Line()
@@ -64,6 +64,7 @@ public class Geometry : MonoBehaviour {
 
         public Vector3 start;
         public Vector3 end;
+
         //Indices of the actual rooms
         public int StartIndex;
         public int EndIndex; 
@@ -74,24 +75,13 @@ public class Geometry : MonoBehaviour {
 
         public float length;
     }
-
-
-
     public class Triangle
     {
-
-        public void CalculateLines()
-        {
-
-        }
-
         public Triangle(Vector3 a, Vector3 b, Vector3 c)
         {
             pointA = a;
             pointB = b;
             pointC = c;
-
- 
 
             AB = new Line(pointA, pointB);
             BC = new Line(pointB, pointC);
@@ -106,9 +96,6 @@ public class Geometry : MonoBehaviour {
             circumCircle = new Geometry.Circle();
 
             circumCircle = CalculateCircumcircle(this);
-
-
-
         }
 
         public Vector3 pointA;
@@ -123,10 +110,7 @@ public class Geometry : MonoBehaviour {
 
         public Geometry.Circle circumCircle;
         public int numPointsInCircle;
-
-
     }
-
     public class Circle
     {
         public Circle()
@@ -177,7 +161,6 @@ public class Geometry : MonoBehaviour {
             return new Vector3(x, 0, z);
         }
     }
-
     public static Geometry.Circle CalculateCircumcircle(Geometry.Triangle triangle)
     {
         Vector3[] midpoints = new Vector3[3];
@@ -220,14 +203,12 @@ public class Geometry : MonoBehaviour {
         float maxDistance = Mathf.Max(distanceA, distanceB, distanceC);
         return new Geometry.Circle(circlePosition, maxDistance);
     }
-
     public static bool PointInsideCircle(Geometry.Circle circle, Vector3 point)
     {
         float distance = Vector3.Distance(point, circle.center);
 
         return distance <= circle.radius;
     }
-
     public static float CalculateAngleInDegs(Vector3 start, Vector3 pivot, Vector3 end)
     {
         float deltaABx = pivot.x - start.x;
@@ -245,7 +226,6 @@ public class Geometry : MonoBehaviour {
 
         return y * Geometry.kRadToDeg;
     }
-
     public static Vector3 FindUncommonPoint(Geometry.Triangle A, Geometry.Triangle B)
     {
         List<Vector3> APoints = new List<Vector3>();
@@ -262,7 +242,6 @@ public class Geometry : MonoBehaviour {
         }
         throw new System.Exception();
     }
-
     public static List<Vector3> FindPointsFormingAngle(Geometry.Triangle A, Vector3 pivotPoint)
     {
         List<Vector3> pointsInOrder = new List<Vector3>();
@@ -291,8 +270,7 @@ public class Geometry : MonoBehaviour {
     // Use this for initialization
     void Start () {
 
-	}
-	
+	}	
 	// Update is called once per frame
 	void Update () {
 		

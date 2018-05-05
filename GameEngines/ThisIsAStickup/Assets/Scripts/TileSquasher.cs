@@ -13,7 +13,6 @@ public class TileSquasher : MonoBehaviour
     {
         box = GetComponent<BoxCollider>();
     }
-
     // Update is called once per frame
     void Update()
     {
@@ -23,7 +22,13 @@ public class TileSquasher : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
 
-        Destroy(gameObject);
+        RoomGenerator roomGen = FindObjectOfType<RoomGenerator>();
+        if (other.tag != "Hallway")
+        {
+            GameObject temp = other.gameObject;            
+            roomGen.roomsToDelete.Remove(temp);
+            Destroy(gameObject);
+        }
 
     }
 }
