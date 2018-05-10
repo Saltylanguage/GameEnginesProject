@@ -10,19 +10,19 @@ public class ColorUpdater : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        color = gameObject.GetComponent<MeshRenderer>().material.color;
+        //color = gameObject.GetComponent<MeshRenderer>().material.color;
     }
 
     // Update is called once per frame
     void Update()
     {
 
-        if (gameObject.GetComponent<GridGenerator>().tileType == Geometry.CellType.MajorRoom)
-        { color = Color.blue; }
-        if (gameObject.GetComponent<GridGenerator>().tileType == Geometry.CellType.MinorRoom)
-        { color = Color.cyan; }
-        if (gameObject.GetComponent<GridGenerator>().tileType == Geometry.CellType.Hallway)
-        { color = Color.green; }
+        //if (gameObject.GetComponent<GridGenerator>().tileType == Geometry.CellType.MajorRoom)
+        //{ color = Color.blue; }
+        //if (gameObject.GetComponent<GridGenerator>().tileType == Geometry.CellType.MinorRoom)
+        //{ color = Color.cyan; }
+        //if (gameObject.GetComponent<GridGenerator>().tileType == Geometry.CellType.Hallway)
+        //{ color = Color.green; }
 
 
     }

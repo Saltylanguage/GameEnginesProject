@@ -12,21 +12,21 @@ public class HullTriangulatorEditor : Editor
         Triangulator triangulator = (Triangulator)target;
 
         if (GUILayout.Button("Reset"))
-        {           
+        {
             triangulator.allPoints.Clear();
-            triangulator.convexHullPoints.Clear();
+            triangulator.convexHullPoints.Clear();            
             triangulator.innerPoints.Clear();
-            triangulator.triangles.Clear();
+            triangulator.mTriangles.Clear();
 
-            triangulator.roomGen.roomPositions.Clear();            
+            triangulator.roomGen.roomPositions.Clear();
         }
 
         if (GUILayout.Button("Clear"))
-        {           
+        {
             triangulator.allPoints.Clear();
             triangulator.convexHullPoints.Clear();
             triangulator.innerPoints.Clear();
-            triangulator.triangles.Clear();
+            triangulator.mTriangles.Clear();
 
             triangulator.roomGen.roomPositions.Clear();
         }
@@ -36,7 +36,7 @@ public class HullTriangulatorEditor : Editor
             triangulator.roomGen.SetRoomPositions();
             for (int i = 0; i < triangulator.roomGen.roomPositions.Count; i++)
             {
-                Vector3 temp = triangulator.roomGen.roomPositions[i];            
+                Vector3 temp = triangulator.roomGen.roomPositions[i];
                 triangulator.allPoints.Add(temp);
             }
 
@@ -45,12 +45,29 @@ public class HullTriangulatorEditor : Editor
             triangulator.GetInnerPoints();
             triangulator.Triangulate();
 
-            int maxPoints = 0;
 
-            for (int i = 0; i < 10; i++)
+
+
+
+            int maxPoints = 0;
+            //SHOULD BE GOOD UNTIL HERE!
+            List<Geometry.Triangle> tempTriangles = new List<Geometry.Triangle>();
+            do
             {
-                maxPoints = triangulator.RunPassOnTriangles(triangulator.triangles.Count, maxPoints);
-            }
+                Debug.Log("got here!");
+                tempTriangles.Clear();
+                for(int i = 0; i < triangulator.mTriangles.Count; i++)
+                {
+                    tempTriangles.Add(new Geometry.Triangle(triangulator.mTriangles[i].pointA, triangulator.mTriangles[i].pointB, triangulator.mTriangles[i].pointC));
+                }
+ 
+                //as of here we have 2 copies of the triangle list
+ 
+                maxPoints = triangulator.DelaunayPass(tempTriangles, maxPoints);
+                Debug.Log("POINT COUNT = " + maxPoints);                
+                //triangulator.mTriangles = tempTriangles;
+            } while (maxPoints > 3);
+
         }
 
         if (GUILayout.Button("MST Mode"))
@@ -62,19 +79,19 @@ public class HullTriangulatorEditor : Editor
             if (triangulator.mstMode)
             {
                 triangulator.minimumSpanningTree.Clear();
-                triangulator.CalculateMinimumSpanningTree(triangulator.triangles);
+                triangulator.CalculateMinimumSpanningTree(triangulator.mTriangles);
             }
 
-            for (int i = 0; i < triangulator.triangles.Count; i++)
+            for (int i = 0; i < triangulator.mTriangles.Count; i++)
             {
                 for (int j = 0; j < 3; j++)
                 {
-                    if (!triangulator.minimumSpanningTree.Contains(triangulator.triangles[i].lines[j]))
+                    if (!triangulator.minimumSpanningTree.Contains(triangulator.mTriangles[i].lines[j]))
                     {
                         int chance = (int)Random.Range(0, 100);
                         if (chance > 95)
                         {
-                            triangulator.minimumSpanningTree.Add(triangulator.triangles[i].lines[j]);
+                            triangulator.minimumSpanningTree.Add(triangulator.mTriangles[i].lines[j]);
                         }
                     }
                 }
@@ -110,3 +127,13 @@ public class HullTriangulatorEditor : Editor
     }
 }
 
+
+
+// I want a list of triangles to start
+// I want to make a copy of that list
+// I want to go over every element of the copied list and make changes where necessary
+// Finally Clear and Update the original list to the new adjusted copy list
+
+//Index problem:  if you add or remove elements from the list you are iterating over indices get jumbled.
+
+//
