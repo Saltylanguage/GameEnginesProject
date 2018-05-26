@@ -9,6 +9,7 @@ public class Geometry : MonoBehaviour {
     public static float kRadToDeg = 180 / kPi;
     public static float kDegToRad = kPi / 180;
 
+    [System.Serializable]
     public enum CellType
     {
         Empty = 0,
@@ -20,6 +21,7 @@ public class Geometry : MonoBehaviour {
 
     }
 
+    [System.Serializable]
     public class Coord
     {
         public int x;
@@ -39,7 +41,20 @@ public class Geometry : MonoBehaviour {
             y = _y;
             type = _type;
         }
+        
+        public static bool operator==(Coord a, Coord b)
+        {
+            return a.x == b.x && a.y == b.y;
+        }
+        public static bool operator !=(Coord a, Coord b)
+        {
+            return !(a == b);
+        }
+
+
+
     }
+    [System.Serializable]
     public class Line
     {
         public Line()
@@ -75,6 +90,8 @@ public class Geometry : MonoBehaviour {
 
         public float length;
     }
+
+    [System.Serializable]
     public class Triangle
     {
         public Triangle(Vector3 a, Vector3 b, Vector3 c)
@@ -111,6 +128,8 @@ public class Geometry : MonoBehaviour {
         public Geometry.Circle circumCircle;
         public int numPointsInCircle;
     }
+
+    [System.Serializable]
     public class Circle
     {
         public Circle()

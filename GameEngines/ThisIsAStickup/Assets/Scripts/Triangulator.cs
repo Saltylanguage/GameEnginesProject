@@ -47,7 +47,7 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
     public List<Vector3> innerPoints = new List<Vector3>();
 
     public List<Geometry.Triangle> mTriangles = new List<Geometry.Triangle>();
-    
+
     public List<Geometry.Line> minimumSpanningTree = new List<Geometry.Line>();
     public List<Geometry.Line> hallways = new List<Geometry.Line>();
 
@@ -230,17 +230,20 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
             if (result > 0)
             {
                 convexStack.Add(end);
+                continue;
             }
             else if (result < 0)
             {
                 convexStack.RemoveAt(convexStack.Count - 1);
                 --i;
+                continue;
             }
             else
             {
                 if (Vector3.SqrMagnitude(pivot - start) < Vector3.SqrMagnitude(end - start))
                 {
                     convexStack.RemoveAt(convexStack.Count - 1);
+                    i--;
                     convexStack.Add(end);
                 }
             }
@@ -404,10 +407,10 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
 
 
                                 //Triangles P1P2P3 and P2P4P3 when flipped form new triangles  P1P2P4 and P1P4P3
-                                int removeIndex = FindTriangleIndex(mTriangles[triIndex]);
-                                mTriangles.RemoveAt(removeIndex);
-                                removeIndex = FindTriangleIndex(trianglesWithPoint[k]);
-                                mTriangles.RemoveAt(removeIndex);
+                                //int removeIndex = FindTriangleIndex(mTriangles[triIndex]);
+                                mTriangles.Remove(mTriangles[triIndex]);
+                                //removeIndex = FindTriangleIndex(trianglesWithPoint[k]);
+                                mTriangles.Remove(trianglesWithPoint[k]);
 
                                 Geometry.Triangle temp1 = new Geometry.Triangle(edgeFlipPoints[0], edgeFlipPoints[1], edgeFlipPoints[3]);
                                 Geometry.Triangle temp2 = new Geometry.Triangle(edgeFlipPoints[0], edgeFlipPoints[3], edgeFlipPoints[2]);
@@ -495,9 +498,36 @@ How can I perform Delaunay Triangulation algorithm in C++ ??. Available from: ht
 
         for (int i = 0; i < mTriangles.Count; i++)
         {
-            if (A.pointA == mTriangles[i].pointA && A.pointB == mTriangles[i].pointB && A.pointC == mTriangles[i].pointC ||
-                A.pointA == mTriangles[i].pointB && A.pointB == mTriangles[i].pointC && A.pointC == mTriangles[i].pointA ||
-                A.pointA == mTriangles[i].pointC && A.pointB == mTriangles[i].pointA && A.pointC == mTriangles[i].pointB  )
+            bool aTrue = false;
+            bool bTrue = false;
+            bool cTrue = false;
+
+            if(Mathf.Approximately(A.pointA.x, mTriangles[i].pointA.x))
+            {
+                if (Mathf.Approximately(A.pointA.y, mTriangles[i].pointA.y))
+                {
+                    aTrue = true;
+                }
+            }
+
+            if (Mathf.Approximately(A.pointB.x, mTriangles[i].pointB.x))
+            {
+                if (Mathf.Approximately(A.pointB.y, mTriangles[i].pointB.y))
+                {
+                    bTrue = true;
+                }
+            }
+
+
+            if (Mathf.Approximately(A.pointC.x, mTriangles[i].pointC.x))
+            {
+                if (Mathf.Approximately(A.pointC.y, mTriangles[i].pointC.y))
+                {
+                    cTrue = true;
+                }
+            }
+
+            if (aTrue && bTrue && cTrue)
             {
                 return i;
             }

@@ -48,7 +48,7 @@ public class HullTriangulatorEditor : Editor
 
 
 
-
+            int counter = 0;
             int maxPoints = 0;
             //SHOULD BE GOOD UNTIL HERE!
             List<Geometry.Triangle> tempTriangles = new List<Geometry.Triangle>();
@@ -64,10 +64,10 @@ public class HullTriangulatorEditor : Editor
                 //as of here we have 2 copies of the triangle list
  
                 maxPoints = triangulator.DelaunayPass(tempTriangles, maxPoints);
-                Debug.Log("POINT COUNT = " + maxPoints);                
+                Debug.Log("POINT COUNT = " + maxPoints);
                 //triangulator.mTriangles = tempTriangles;
-            } while (maxPoints > 3);
-
+                counter++;
+            } while (maxPoints > 3 && counter < 100 );
         }
 
         if (GUILayout.Button("MST Mode"))

@@ -93,14 +93,14 @@ public static class Utility
                     {
                         positionA.x = roomGen.allRooms[j].transform.position.x;
                         positionA.y = roomGen.allRooms[j].transform.position.z;
-                        gridSizeA = new Vector2(roomGen.allRooms[j].GetComponent<GridGenerator>().gridSize.x, roomGen.allRooms[j].GetComponent<GridGenerator>().gridSize.y); 
+                        gridSizeA = new Vector2(roomGen.allRooms[j].GetComponent<GridGenerator>().currentGrid.gridSize.x, roomGen.allRooms[j].GetComponent<GridGenerator>().currentGrid.gridSize.y); 
                     }
                     // Is end inside the room?
                     else if (Vector3.Distance(end, room) < Mathf.Epsilon)
                     {
                         positionB.x = roomGen.allRooms[j].transform.position.x;
                         positionB.y = roomGen.allRooms[j].transform.position.z;
-                        gridSizeB = new Vector2(roomGen.allRooms[j].GetComponent<GridGenerator>().gridSize.x, roomGen.allRooms[j].GetComponent<GridGenerator>().gridSize.y);
+                        gridSizeB = new Vector2(roomGen.allRooms[j].GetComponent<GridGenerator>().currentGrid.gridSize.x, roomGen.allRooms[j].GetComponent<GridGenerator>().currentGrid.gridSize.y);
                                     
                     }
                 }
@@ -202,8 +202,8 @@ public static class Utility
                     {
                         for (int y = -1; y <= deltaY + 1; y++)
                         {
-                            GameObject newHallwayCell = MonoBehaviour.Instantiate(roomGen.hallwayTemplate, Vector3.zero, Quaternion.identity) as GameObject;
-                            newHallwayCell.GetComponent<GridGenerator>().gridSize = new Vector2(1, 1);
+                            GameObject newHallwayCell = MonoBehaviour.Instantiate(roomGen.hallwayTemplate, Vector3.zero, Quaternion.identity) as GameObject;                            
+                            //newHallwayCell.GetComponent<GridGenerator>().currentGrid.gridSize = new Geometry.Coord(1, 1);
                             float xFinal = Mathf.Round(roomGen.hallways[i].end.x) + x - 0.5f;
                             float yFinal = Mathf.Round(roomGen.hallways[i].end.z) + y - 0.5f;
                             newHallwayCell.transform.position = new Vector3(xFinal, 0, yFinal);
@@ -214,7 +214,7 @@ public static class Utility
                         for (int y = 1; y >= deltaY; y--)
                         {
                             GameObject newHallwayCell = MonoBehaviour.Instantiate(roomGen.hallwayTemplate, Vector3.zero, Quaternion.identity) as GameObject;
-                            newHallwayCell.GetComponent<GridGenerator>().gridSize = new Vector2(1, 1);
+                            newHallwayCell.GetComponent<GridGenerator>().currentGrid.gridSize = new Geometry.Coord(1, 1);
                             float xFinal = Mathf.Round(roomGen.hallways[i].end.x) + x - 0.5f;
                             float yFinal = Mathf.Round(roomGen.hallways[i].end.z) + y - 0.5f;
                             newHallwayCell.transform.position = new Vector3(xFinal, 0, yFinal);
@@ -233,7 +233,7 @@ public static class Utility
                         for (int y = -hallwayWidth; y < hallwayWidth + 1; y++)
                         {
                             GameObject newHallwayCell = MonoBehaviour.Instantiate(roomGen.hallwayTemplate, Vector3.zero, Quaternion.identity) as GameObject;
-                            newHallwayCell.GetComponent<GridGenerator>().gridSize = new Vector2(1, 1);
+                            newHallwayCell.GetComponent<GridGenerator>().currentGrid.gridSize = new Geometry.Coord(1, 1);
                             float xFinal = Mathf.Round(roomGen.hallways[i].end.x) + x - 0.5f;
                             float yFinal = Mathf.Round(roomGen.hallways[i].end.z) + y - 0.5f;
                             newHallwayCell.transform.position = new Vector3(xFinal, 0, yFinal);
@@ -247,7 +247,7 @@ public static class Utility
                         for (int y = -hallwayWidth; y < hallwayWidth + 1; y++)
                         {
                             GameObject newHallwayCell = MonoBehaviour.Instantiate(roomGen.hallwayTemplate, Vector3.zero, Quaternion.identity) as GameObject;
-                            newHallwayCell.GetComponent<GridGenerator>().gridSize = new Vector2(1, 1);
+                            newHallwayCell.GetComponent<GridGenerator>().currentGrid.gridSize = new Geometry.Coord(1, 1);
                             float xFinal = Mathf.Round(roomGen.hallways[i].end.x) + x - 0.5f;
                             float yFinal = Mathf.Round(roomGen.hallways[i].end.z) + y - 0.5f;
                             newHallwayCell.transform.position = new Vector3(xFinal, 0, yFinal);

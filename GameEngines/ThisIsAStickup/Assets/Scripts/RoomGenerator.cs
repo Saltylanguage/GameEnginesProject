@@ -11,8 +11,8 @@ public class RoomGenerator : MonoBehaviour
     public float yThreshold;
 
     public static List<Vector3> randomPoints = new List<Vector3>();
-    public static List<float> xRange = new List<float>();
-    public static List<float> zRange = new List<float>();
+    public static List<int> xRange = new List<int>();
+    public static List<int> zRange = new List<int>();
 
     public GameObject roomTemplate;
     public GameObject hallwayTemplate;
@@ -78,15 +78,15 @@ public class RoomGenerator : MonoBehaviour
 
             if (allRooms != null)
             {
-                roomTemplate.GetComponent<GridGenerator>().gridSize.x = xRange[i];
-                roomTemplate.GetComponent<GridGenerator>().gridSize.y = zRange[i];
+                roomTemplate.GetComponent<GridGenerator>().currentGrid.gridSize.x = xRange[i];
+                roomTemplate.GetComponent<GridGenerator>().currentGrid.gridSize.y = zRange[i];
                 allRooms[i] = Instantiate(roomTemplate.gameObject);
                 allRooms[i].transform.parent = transform;
             
                 allRooms[i].transform.position = new Vector3(randomPoints[i].x, 0, randomPoints[i].y);
 
-                zSum += allRooms[i].GetComponent<GridGenerator>().gridSize.y;
-                xSum += allRooms[i].GetComponent<GridGenerator>().gridSize.x;
+                zSum += allRooms[i].GetComponent<GridGenerator>().currentGrid.gridSize.y;
+                xSum += allRooms[i].GetComponent<GridGenerator>().currentGrid.gridSize.x;
             }
             minimumSpanningTree = GetComponent<Triangulator>().minimumSpanningTree;
         }
@@ -96,7 +96,7 @@ public class RoomGenerator : MonoBehaviour
 
         for (int i = 0; i < numObjects; i++)
         {
-            bool biggerThanAverage = allRooms[i].GetComponent<GridGenerator>().gridSize.x >= xMean && allRooms[i].GetComponent<GridGenerator>().gridSize.y >= zMean;
+            bool biggerThanAverage = allRooms[i].GetComponent<GridGenerator>().currentGrid.gridSize.x >= xMean && allRooms[i].GetComponent<GridGenerator>().currentGrid.gridSize.y >= zMean;
             if (biggerThanAverage)
             {
                 for (int j = 0; j < allRooms[i].GetComponent<GridGenerator>().allTileCoords.Count; j++)

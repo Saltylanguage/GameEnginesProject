@@ -7,14 +7,23 @@ using UnityEditor;
 public class MapEditor : Editor
 {
 
-    //public override void OnInspectorGUI()
-    //{
-    //    base.OnInspectorGUI();
-    //    GridGenerator map = target as GridGenerator;
-    //    if (!Application.isPlaying)
-    //    {
-    //        map.CreateGrid();
-    //    }
-    //}
+    public override void OnInspectorGUI()
+    {
+        GridGenerator map = target as GridGenerator;
+
+        if (DrawDefaultInspector())
+        {
+            if (!Application.isPlaying)
+            {
+                map.CreateGrid();
+            }
+        }
+
+        if (GUILayout.Button("Generate Map"))
+        {
+            map.CreateGrid();
+        }
+
+    }
 }
 
